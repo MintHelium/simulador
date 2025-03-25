@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <!-- META -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#2c5244" />
+  
+  <!-- TÍTULO -->
+  <title>Simulador de Crédito</title>
+  
+  <!-- ICONOS & PWA -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="assets/image/icons/icon-180.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/image/icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/image/icons/favicon-16.png">
+  
+  <!-- ESTILOS -->
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>  
+<body>
+  <header class="icn-header">
+    <img src="assets/image/brand/logo-icn.png" alt="ICN Logo" class="logo-icn" />
+  </header>  
+  
+  <h1>Simulador de Crédito</h1>
+
+  <!-- Selects principales -->
+  <label>Desarrollo:</label>
+  <select id="desarrollo"></select>
+
+  <label>Etapa:</label>
+  <select id="etapa" disabled></select>
+
+  <label>Tamaño:</label>
+  <select id="tamano" disabled></select>
+
+  <label>Tipo de Lote:</label>
+  <select id="tipo" disabled></select>
+
+  <label>Forma de Pago:</label>
+  <select id="pago" disabled></select>
+
+  <label>Plazo (meses):</label>
+  <select id="plazo" disabled></select>
+
+  <div id="infoEtapa" style="margin: 1em 0; color: darkred; font-weight: bold;"></div>
+
+  <!-- ENGANCHE -->
+<div>
+  <label>Enganche:</label>
+  <div class="input-group">
+    <button type="button" id="btnEngancheMenos">−</button>
+    <input type="text" id="enganche" pattern="[0-9]*" inputmode="numeric" disabled />
+    <button type="button" id="btnEngancheMas">+</button>
+  </div>
+  <input type="radio" name="modoCalculo" id="modoEnganche" value="enganche" checked />
+  <label for="modoEnganche">Usar Enganche</label>
+</div>
+
+<!-- MENSUALIDAD -->
+<div>
+  <label>Mensualidad:</label>
+  <div class="input-group">
+    <button type="button" id="btnMensualidadMenos">−</button>
+    <input type="text" id="mensualidadInput" pattern="[0-9]*" inputmode="numeric" disabled />
+    <button type="button" id="btnMensualidadMas">+</button>
+  </div>
+  <input type="radio" name="modoCalculo" id="modoMensualidad" value="mensualidad" />
+  <label for="modoMensualidad">Usar Mensualidad</label>
+</div>
+
+<!-- Resultados -->
+<h2>Resultados</h2>
+<div>Enganche: <span id="resEnganche">$0.00</span></div>
+<div>Mensualidad: <span id="mensualidad">$0.00</span></div>
+<div>Valor Total: <span id="valorTotal">$0.00</span></div>
+
+<script src="script.js" defer></script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(() => console.log('✅ Service Worker registrado'))
+      .catch(err => console.error('❌ Error en Service Worker:', err));
+  }
+</script>
+
+</body>
+
+<footer class="leyenda-legal">
+  <p>
+    Este simulador tiene fines informativos y de orientación. No representa una oferta formal de financiamiento. Los montos, plazos y condiciones pueden variar sin previo aviso. Consulte con un asesor ICN para más detalles.
+  </p>
+</footer>
+
+</html>

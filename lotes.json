@@ -1,0 +1,209 @@
+{
+  "Cañón de Gomas": {
+    "Etapa 1": {
+      "1500m2": {
+        "Un solo frente": {
+          "Contado": 650000
+        }
+      }
+    },
+    "Etapa 2": {
+      "750m2": {
+        "Un solo frente": {
+          "Contado": 300000,
+          "Financiamiento": {
+            "25": { "precio": 320000, "enganche": 70000 },
+            "35": { "precio": 340000, "enganche": 60000 },
+            "45": { "precio": 360000, "enganche": 50000 }
+          }
+        }
+      },
+      "1500m2": {
+        "Un solo frente": {
+          "Contado": 600000,
+          "Financiamiento": {
+            "25": { "precio": 640000, "enganche": 130000 },
+            "35": { "precio": 680000, "enganche": 110000 },
+            "45": { "precio": 720000, "enganche": 90000 }
+          }
+        },
+        "Esquina": {
+          "Contado": 600000,
+          "Financiamiento": {
+            "25": { "precio": 680000, "enganche": 150000 },
+            "35": { "precio": 720000, "enganche": 140000 },
+            "45": { "precio": 750000, "enganche": 120000 }
+          }
+        }
+      }
+    },
+    "Etapa 3": {
+      "750m2": {
+        "Un solo frente": {
+          "Contado": 300000,
+          "Financiamiento": {
+            "25": { "precio": 320000, "enganche": 70000 },
+            "35": { "precio": 340000, "enganche": 60000 },
+            "45": { "precio": 360000, "enganche": 50000 }
+          }
+        }
+      },
+      "1500m2": {
+        "Un solo frente": {
+          "Contado": 600000,
+          "Financiamiento": {
+            "25": { "precio": 640000, "enganche": 130000 },
+            "35": { "precio": 680000, "enganche": 110000 },
+            "45": { "precio": 720000, "enganche": 90000 }
+          }
+        },
+        "Esquina": {
+          "Contado": 600000,
+          "Financiamiento": {
+            "25": { "precio": 680000, "enganche": 150000 },
+            "35": { "precio": 720000, "enganche": 140000 },
+            "45": { "precio": 750000, "enganche": 120000 }
+          }
+        }
+      }
+    },
+    "Etapa 4": {
+      "750m2": {
+        "Un solo frente": {
+          "Contado": 270000,
+          "Financiamiento": {
+            "25": { "precio": 295000, "enganche": 70000 },
+            "35": { "precio": 315000, "enganche": 60000 },
+            "45": { "precio": 335000, "enganche": 50000 }
+          }
+        }
+      },
+      "1500m2": {
+        "Un solo frente": {
+          "Contado": 540000,
+          "Financiamiento": {
+            "25": { "precio": 590000, "enganche": 120000 },
+            "35": { "precio": 630000, "enganche": 100000 },
+            "45": { "precio": 670000, "enganche": 80000 }
+          }
+        },
+        "Esquina": {
+          "Contado": 540000,
+          "Financiamiento": {
+            "25": { "precio": 565000, "enganche": 270000 },
+            "35": { "precio": 585000, "enganche": 270000 },
+            "45": { "precio": 605000, "enganche": 270000 }
+          }
+        },
+        "L151 Triple Frente 2250m2": {
+          "Contado": 810000,
+          "Financiamiento": {
+            "25": { "precio": 885000, "enganche": 270000 },
+            "35": { "precio": 945000, "enganche": 270000 },
+            "45": { "precio": 1005000, "enganche": 270000 }
+          }
+        }
+      }
+    }
+  },
+  "Campestre Las Flores": {
+    "Etapa 1": "Próximamente Mayo 2025",
+    "Etapa 2": {
+      "1500m2": {
+        "Esquina": {
+          "Contado": 540000,
+          "Financiamiento": {
+            "25": { "precio": 565000, "enganche": 270000 },
+            "35": { "precio": 585000, "enganche": 270000 },
+            "45": { "precio": 605000, "enganche": 270000 }
+          }
+        }
+      }
+    },
+    "Etapa 3": {
+      "750m2": {
+        "Un solo frente": {
+          "Contado": 270000,
+          "Financiamiento": {
+            "25": { "precio": 295000, "enganche": 70000 },
+            "35": { "precio": 315000, "enganche": 60000 },
+            "45": { "precio": 335000, "enganche": 50000 }
+          }
+        }
+      },
+      "1500m2": {
+        "Esquina": {
+          "Contado": 540000,
+          "Financiamiento": {
+            "25": { "precio": 565000, "enganche": 270000 },
+            "35": { "precio": 585000, "enganche": 270000 },
+            "45": { "precio": 605000, "enganche": 270000 }
+          }
+        },
+        "LF61 Esquina 2,250m2": {
+          "Contado": 810000,
+          "Financiamiento": {
+            "25": { "precio": 885000, "enganche": 270000 },
+            "35": { "precio": 945000, "enganche": 270000 },
+            "45": { "precio": 1005000, "enganche": 270000 }
+          }
+        }
+      }
+    },
+    "Etapa 4": {
+      "750m2": {
+        "Un solo frente": {
+          "Contado": 270000,
+          "Financiamiento": {
+            "25": { "precio": 295000, "enganche": 70000 },
+            "35": { "precio": 315000, "enganche": 60000 },
+            "45": { "precio": 335000, "enganche": 50000 }
+          }
+        }
+      },
+      "1500m2": {
+        "Un solo frente": {
+          "Contado": 540000,
+          "Financiamiento": {
+            "25": { "precio": 590000, "enganche": 120000 },
+            "35": { "precio": 630000, "enganche": 100000 },
+            "45": { "precio": 670000, "enganche": 80000 }
+          }
+        },
+        "Un solo vecino": {
+          "Contado": 540000,
+          "Financiamiento": {
+            "25": { "precio": 577500, "enganche": 135000 },
+            "35": { "precio": 607500, "enganche": 135000 },
+            "45": { "precio": 637500, "enganche": 135000 }
+          }
+        },
+        "Esquina": {
+          "Contado": 540000,
+          "Financiamiento": {
+            "25": { "precio": 565000, "enganche": 270000 },
+            "35": { "precio": 585000, "enganche": 270000 },
+            "45": { "precio": 605000, "enganche": 270000 }
+          }
+        },
+        "LF123": {
+          "Contado": 580000,
+          "Financiamiento": {
+            "25": { "precio": 600000, "enganche": 155000 },
+            "35": { "precio": 625000, "enganche": 145000 },
+            "45": { "precio": 650000, "enganche": 135000 }
+          }
+        },
+        "LF125 Esquina": {
+          "Contado": 600000,
+          "Financiamiento": {
+            "6": { "precio": 600000, "enganche": 300000 },
+            "12": { "precio": 625000, "enganche": 300000 },
+            "18": { "precio": 650000, "enganche": 300000 }
+          }
+        }
+      }
+    }
+  }
+}
+
