@@ -1,9 +1,9 @@
-const CACHE_NAME = 'simulador-icn-v1';
+const CACHE_NAME = 'simulador-icn-v2'; // 🔥 nuevo nombre de caché
 
 const urlsToCache = [
   './',
   './index.html',
-  './script.js',
+  './script.min.js',
   './lotes.json',
   './manifest.json',
   './assets/css/styles.css',
@@ -15,7 +15,6 @@ const urlsToCache = [
   './assets/image/brand/logo-icn.png'
 ];
 
-// Instalación: precachea todo
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -24,7 +23,6 @@ self.addEventListener('install', event => {
   );
 });
 
-// Activación: limpieza de versiones viejas
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -37,11 +35,10 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Intercepción de requests
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request).then(response =>
       response || fetch(event.request)
-    ).catch(() => caches.match('./index.html')) // fallback offline
+    ).catch(() => caches.match('./index.html'))
   );
 });
