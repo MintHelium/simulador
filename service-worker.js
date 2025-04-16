@@ -1,4 +1,4 @@
-const CACHE_NAME = 'simulador-icn-v2'; // 🔥 nuevo nombre de caché
+const CACHE_NAME = 'simulador-icn-v2';
 
 const urlsToCache = [
   './',
@@ -15,6 +15,7 @@ const urlsToCache = [
   './assets/image/brand/logo-icn.png'
 ];
 
+// Instala y precachea
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -23,18 +24,26 @@ self.addEventListener('install', event => {
   );
 });
 
+// Activación y limpieza
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(
-        keys.filter(key => key !== CACHE_NAME)
-            .map(key => caches.delete(key))
+        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
       )
     )
   );
   self.clients.claim();
 });
 
+// Actualiza inmediatamente si recibe mensaje desde app
+self.addEventListener('message', event => {
+  if (event.data === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
+// Fetch: sirve desde caché o red
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request).then(response =>
