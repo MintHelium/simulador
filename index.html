@@ -80,9 +80,9 @@
 
 <script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./service-worker.js')
+    navigator.serviceWorker.register('./service-worker-v2.js')
       .then(reg => {
-        console.log('✅ Service Worker registrado');
+        console.log('✅ Service Worker actualizado y registrado');
         if (reg.waiting) {
           reg.waiting.postMessage('SKIP_WAITING');
         }
