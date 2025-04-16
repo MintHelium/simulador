@@ -81,7 +81,12 @@
 <script>
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./service-worker.js')
-      .then(() => console.log('✅ Service Worker registrado'))
+      .then(reg => {
+        console.log('✅ Service Worker registrado');
+        if (reg.waiting) {
+          reg.waiting.postMessage('SKIP_WAITING');
+        }
+      })
       .catch(err => console.error('❌ Error en Service Worker:', err));
   }
 </script>
