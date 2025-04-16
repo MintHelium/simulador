@@ -194,12 +194,20 @@
             "45": { "precio": 650000, "enganche": 135000 }
           }
         },
-        "LF125 Esquina": {
-          "Contado": 600000,
+        "LF124 Esq. (2,022m2)": {
+          "Contado": 730,000,
           "Financiamiento": {
-            "6": { "precio": 600000, "enganche": 300000 },
-            "12": { "precio": 625000, "enganche": 300000 },
-            "18": { "precio": 650000, "enganche": 300000 }
+            "25": { "precio": 750000, "enganche": 365000 },
+            "35": { "precio": 770000, "enganche": 365000 },
+            "45": { "precio": 790000, "enganche": 365000 }
+          }
+        },
+        "LF125 Esq. (1,623m2)": {
+          "Contado": 650000,
+          "Financiamiento": {
+            "6": { "precio": 650000, "enganche": 325000 },
+            "12": { "precio": 670000, "enganche": 325000 },
+            "18": { "precio": 690000, "enganche": 325000 }
           }
         }
       }
