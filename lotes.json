@@ -195,7 +195,7 @@
           }
         },
         "LF124 Esq. (2,022m2)": {
-          "Contado": 730,000,
+          "Contado": 730000,
           "Financiamiento": {
             "25": { "precio": 750000, "enganche": 365000 },
             "35": { "precio": 770000, "enganche": 365000 },
