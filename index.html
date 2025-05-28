@@ -44,6 +44,22 @@
   <label>Plazo (meses):</label>
   <select id="plazo" disabled></select>
 
+  <div id="zonaAnualidades" style="display:none; margin-top: 1em;">
+    <label for="anualidades">N° de Anualidades:</label>
+    <select id="anualidades" disabled>
+      <option value="0">0</option>
+    </select>
+  
+    <div id="anualidadMontoGroup" style="display:none; margin-top:0.5em;">
+      <label>Monto por Anualidad:</label>
+      <div class="input-group">
+        <button type="button" id="btnAnualidadMenos">−</button>
+        <input type="text" id="anualidadMonto" pattern="[0-9]*" inputmode="numeric" value="40000" />
+        <button type="button" id="btnAnualidadMas">+</button>
+      </div>
+    </div>
+  </div>
+  
   <div id="infoEtapa" style="margin: 1em 0; color: darkred; font-weight: bold;"></div>
 
   <!-- ENGANCHE -->
@@ -72,9 +88,12 @@
 
 <!-- Resultados -->
 <h2>Resultados</h2>
-<div>Enganche: <span id="resEnganche">$0.00</span></div>
-<div>Mensualidad: <span id="mensualidad">$0.00</span></div>
-<div>Valor Total: <span id="valorTotal">$0.00</span></div>
+<div>Enganche: <span id="resEnganche" class="res-num">$0.00</span></div>
+<div>Mensualidad: <span id="mensualidad"><span class="res-num">$0.00</span></span>
+<div id="anualidadesResultadoDiv" style="display: none;">
+  <span>Anualidades:</span> <span id="anualidadesResumen">N/A</span>
+</div>
+<div>Valor Total: <span id="valorTotal" class="res-num">$0.00</span></div>
 
 <script src="script.js" defer></script>
 
