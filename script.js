@@ -18,8 +18,16 @@ const mensualidadInput = document.getElementById("mensualidadInput");
 const resEngancheSpan = document.getElementById("resEnganche");
 const mensualidadSpan = document.getElementById("mensualidad");
 const valorTotalSpan = document.getElementById("valorTotal");
+const anualidadesResumenSpan = document.getElementById("anualidadesResumen");
 
 const infoEtapaDiv = document.getElementById("infoEtapa");
+
+const zonaAnualidadesDiv = document.getElementById("zonaAnualidades");
+const anualidadesSelect = document.getElementById("anualidades");
+const anualidadMontoInput = document.getElementById("anualidadMonto");
+const btnAnualidadMas = document.getElementById("btnAnualidadMas");
+const btnAnualidadMenos = document.getElementById("btnAnualidadMenos");
+const anualidadMontoGroup = document.getElementById("anualidadMontoGroup");
 
 /* ==========================
    1) CARGA DE DATOS JSON
@@ -158,6 +166,20 @@ function llenarPlazos() {
     actualizarResultados();
   }
   habilitarInputs();
+
+  zonaAnualidadesDiv.style.display = formaPago === "Financiamiento" ? "block" : "none";
+  anualidadesSelect.innerHTML = "<option value='0'>0</option>";
+  anualidadesSelect.disabled = true;
+  anualidadMontoGroup.style.display = "none";
+
+  if (formaPago === "Financiamiento") {
+    const plazoKeys = Object.keys(dataTipo.Financiamiento);
+    plazoSelect.innerHTML = "<option value=''>Seleccione un plazo</option>";
+    plazoKeys.forEach(p => {
+      plazoSelect.innerHTML += `<option value="${p}">${p} meses</option>`;
+    });
+    plazoSelect.disabled = false;
+  } 
 }
 
 /* ==================================
@@ -258,7 +280,31 @@ function actualizarResultados() {
   const plazoNum = parseInt(plazoVal);
   if (!plazoNum) return;
 
+  let maxAnualidades = 0;
+  if (plazoNum >= 12 && plazoNum < 25) maxAnualidades = 1;
+  else if (plazoNum >= 25 && plazoNum < 35) maxAnualidades = 2;
+  else if (plazoNum >= 35 && plazoNum < 45) maxAnualidades = 3;
+  else if (plazoNum >= 45) maxAnualidades = 4;
+
+  const selectedAnualidad = anualidadesSelect.value;
+
+  anualidadesSelect.innerHTML = "";
+  for (let i = 0; i <= maxAnualidades; i++) {
+    anualidadesSelect.innerHTML += `<option value="${i}">${i}</option>`;
+  }
+  anualidadesSelect.disabled = false;
+
+  // Si la opción seleccionada sigue siendo válida, la volvemos a aplicar
+  if (parseInt(selectedAnualidad) <= maxAnualidades) {
+    anualidadesSelect.value = selectedAnualidad;
+  } else {
+    anualidadesSelect.value = "0"; // Reiniciamos a 0 si ya no aplica
+  }
+
   const plan = dataLote.Financiamiento[plazoNum];
+  const numAnualidades = parseInt(anualidadesSelect.value) || 0;
+  const montoAnualidad = parseFloat(anualidadMontoInput.value) || 0;
+  const totalAnualidades = numAnualidades * montoAnualidad;
   if (!plan) return;
 
   const precio = plan.precio;
@@ -273,13 +319,13 @@ function actualizarResultados() {
   if (enganche > precioContado) enganche = precioContado;
 
   if (modoCalculo === "mensualidad") {
-    enganche = precio - (mensualUser * plazoNum);
+    enganche = precio - totalAnualidades - (mensualUser * plazoNum);
     if (enganche < engancheMin) enganche = engancheMin;
     if (enganche > precioContado) enganche = precioContado;
   }
-
-  const planFinal = calcularPlanMensualidades(precio, enganche, plazoNum);
-
+  
+  const planFinal = calcularPlanMensualidades(precio, enganche + totalAnualidades, plazoNum);
+  
   engancheInput.value = `${enganche}`;
   mensualidadInput.value = `${planFinal.mensualBase}`;
 
@@ -290,23 +336,31 @@ function actualizarResultados() {
   const pagosN = planFinal.pagosNormales;
 
   if (pagosN < 1) {
-    mensualidadSpan.textContent = `$${(precio - enganche).toLocaleString("es-MX",{minimumFractionDigits:2})}`;
-  } else if (Math.round(leftover) === 0) {
-    mensualidadSpan.textContent = `$${base.toLocaleString("es-MX",{minimumFractionDigits:2})}`;
-  } else if (Math.round(leftover) === Math.round(base)) {
-    mensualidadSpan.textContent = `${plazoNum} pagos de $${base.toLocaleString("es-MX",{minimumFractionDigits:2})}`;
+    mensualidadSpan.innerHTML = `<span class="res-num">$${(precio - enganche).toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>`;
+  } else if (Math.round(leftover) === 0 || Math.round(leftover) === Math.round(base)) {
+    mensualidadSpan.innerHTML =
+      `<span class="res-num">${plazoNum}</span> <span class="text-verde">pagos de</span> <span class="res-num">$${base.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>`;
+  } else if (leftover > base) {
+    const uniforme = Math.round(precio / plazoNum);
+    mensualidadSpan.innerHTML =
+      `<span class="res-num">${plazoNum}</span> <span class="text-verde">pagos de</span> <span class="res-num">$${uniforme.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>`;
   } else {
-    if (leftover > base) {
-      const uniforme = Math.round(precio / plazoNum);
-      mensualidadSpan.textContent = `${plazoNum} pagos de $${uniforme.toLocaleString("es-MX",{minimumFractionDigits:2})}`;
-    } else {
-      mensualidadSpan.textContent =
-        `${pagosN} pagos de $${base.toLocaleString("es-MX",{minimumFractionDigits:2})}` +
-        ` + 1 pago de $${leftover.toLocaleString("es-MX",{minimumFractionDigits:2})}`;
-    }
-  }
+    mensualidadSpan.innerHTML =
+      `<span class="res-num">${pagosN}</span> <span class="text-verde">pagos de</span> <span class="res-num">$${base.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>` +
+      `<span class="text-verde"> + </span><span class="res-num">1</span> <span class="text-verde">pago de</span> <span class="res-num">$${leftover.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>`;
+  }  
 
   valorTotalSpan.textContent = `$${planFinal.total.toLocaleString("es-MX",{minimumFractionDigits:2})}`;
+
+  const anualidadesResumenDiv = document.getElementById("anualidadesResumen").parentElement;
+
+  if (numAnualidades > 0 && montoAnualidad > 0) {
+    anualidadesResumenSpan.innerHTML = `<span class="res-num">${numAnualidades}</span><span class="text-verde"> de </span><span class="res-num">$${montoAnualidad.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>`;
+    anualidadesResumenDiv.style.display = "block";
+  } else {
+    anualidadesResumenSpan.innerHTML = "";
+    anualidadesResumenDiv.style.display = "none";
+  }    
 }
 
 /* ======================================
@@ -406,5 +460,28 @@ document.addEventListener("DOMContentLoaded", () => {
     mensualidadInput.value = val;
     actualizarResultados();
   });
+
+  anualidadesSelect.addEventListener("change", () => {
+    const n = parseInt(anualidadesSelect.value);
+    anualidadMontoGroup.style.display = n > 0 ? "block" : "none";
+    actualizarResultados();
+  });
+  
+  btnAnualidadMas.addEventListener("click", () => {
+    let val = parseFloat(anualidadMontoInput.value) || 0;
+    if (val < 40000) {
+      anualidadMontoInput.value = val + 1000;
+      actualizarResultados();
+    }
+  });
+  
+  btnAnualidadMenos.addEventListener("click", () => {
+    let val = parseFloat(anualidadMontoInput.value) || 0;
+    val = Math.max(0, val - 1000);
+    anualidadMontoInput.value = val;
+    actualizarResultados();
+  });
+  
+  anualidadMontoInput.addEventListener("blur", actualizarResultados);  
   
 });
