@@ -101,9 +101,7 @@ input[type="radio"] {
 /* --------------------------
    Resultados (Monto Final)
 -------------------------- */
-#resEnganche,
-#mensualidad,
-#valorTotal {
+.res-num {
   font-weight: 600;
   color: var(--verde-icn);
   display: inline-block;
@@ -146,3 +144,14 @@ input[type="radio"] {
   margin-right: auto;
 }
 
+.res-num {
+  font-weight: 600;
+  color: var(--verde-icn);
+  display: inline-block;
+  margin-left: 0.5rem;
+}
+
+.text-verde {
+  color: var(--verde-icn);
+  font-weight: normal;
+}
