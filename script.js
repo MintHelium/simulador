@@ -266,20 +266,27 @@ function actualizarResultados() {
   const dataLote = lotesData[desarrollo][etapa][tamano][tipo];
   if (!dataLote) return;
 
-  // ✅ Contado
+  let plazoNum = parseInt(plazoVal);
+  if (isNaN(plazoNum)) plazoNum = 0;
+
+  const precioContado = dataLote.Contado || 0;
+
   if (formaPago === "Contado") {
-    const precioContado = dataLote.Contado;
+    const enganche = precioContado;
+
     engancheInput.value = `${precioContado}`;
-    resEngancheSpan.textContent = `$${precioContado.toLocaleString("es-MX")}`;
     mensualidadSpan.textContent = "$0.00";
     valorTotalSpan.textContent = `$${precioContado.toLocaleString("es-MX")}`;
+    resEngancheSpan.textContent = `$${precioContado.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
+
+    const comision = calcularComision(precioContado, enganche, plazoNum);
+
+    document.getElementById("comisionCobrar").textContent = `$${comision.cobrar.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
+    document.getElementById("comisionAhorro").textContent = `$${comision.ahorro.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
     return;
   }
 
   // ✅ Financiamiento
-  const plazoNum = parseInt(plazoVal);
-  if (!plazoNum) return;
-
   let maxAnualidades = 0;
   if (plazoNum >= 12 && plazoNum < 25) maxAnualidades = 1;
   else if (plazoNum >= 25 && plazoNum < 35) maxAnualidades = 2;
@@ -309,7 +316,6 @@ function actualizarResultados() {
 
   const precio = plan.precio;
   const engancheMin = plan.enganche;
-  const precioContado = dataLote.Contado || 0;
 
   let enganche = parseFloat(engancheInput.value) || 0;
   let mensualUser = parseFloat(mensualidadInput.value) || 0;
@@ -361,10 +367,54 @@ function actualizarResultados() {
     anualidadesResumenSpan.innerHTML = "";
     anualidadesResumenDiv.style.display = "none";
   }    
+
+  const comision = calcularComision(precioContado, enganche, plazoNum);
+
+  document.getElementById("comisionCobrar").textContent = `$${comision.cobrar.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
+  document.getElementById("comisionAhorro").textContent = `$${comision.ahorro.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
+
 }
 
 /* ======================================
-   5) EVENTOS Y MANEJO DE FLECHAS
+   5) Calculo de Comisión 
+====================================== */
+function calcularComision(precioContado, enganche, plazoNum) {
+  const ventaComision = precioContado * 0.05;
+
+  const plazoMax = 45;
+  const plazoBase = precioContado * 0.025;
+  const plazoDescuento = (plazoBase / plazoMax) * plazoNum;
+  const plazoComision = plazoBase - plazoDescuento;
+
+  const engancheComision = enganche * 0.025;
+
+  const comisionTotalReal = ventaComision + plazoComision + engancheComision;
+
+  return ajustarComision(comisionTotalReal);
+}
+
+function ajustarComision(comisionReal) {
+  const primerRedondeo = Math.floor(comisionReal / 500) * 500;
+  const segundoRedondeo = primerRedondeo - 500;
+
+  const ahorro1 = comisionReal - primerRedondeo;
+  const ahorro2 = comisionReal - segundoRedondeo;
+
+  if (ahorro2 <= 1000 && segundoRedondeo > 0) {
+    return {
+      cobrar: segundoRedondeo,
+      ahorro: ahorro2
+    };
+  } else {
+    return {
+      cobrar: primerRedondeo,
+      ahorro: ahorro1
+    };
+  }
+}
+
+/* ======================================
+   6) EVENTOS Y MANEJO DE FLECHAS
 ====================================== */
 document.addEventListener("DOMContentLoaded", () => {
   cargarDatos();
@@ -483,5 +533,21 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   
   anualidadMontoInput.addEventListener("blur", actualizarResultados);  
-  
+
+  let tapCount = 0;
+  let tapTimer;
+
+  const logo = document.getElementById("logo");
+  logo.addEventListener("click", () => {
+    tapCount++;
+    clearTimeout(tapTimer);
+    tapTimer = setTimeout(() => tapCount = 0, 500);
+
+    if (tapCount === 3) {
+      tapCount = 0;
+      const comisionBox = document.getElementById("comisionContainer");
+      comisionBox.style.display = comisionBox.style.display === "none" ? "block" : "none";
+    }
+  });
+
 });
