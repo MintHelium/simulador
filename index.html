@@ -20,7 +20,7 @@
 </head>  
 <body>
   <header class="icn-header">
-    <img src="assets/image/brand/logo-icn.png" alt="ICN Logo" class="logo-icn" />
+    <img id="logo" src="assets/image/brand/logo-icn.png" alt="ICN Logo" class="logo-icn" />
   </header>  
   
   <h1>Simulador de Crédito</h1>
@@ -109,6 +109,14 @@
       .catch(err => console.error('❌ Error en Service Worker:', err));
   }
 </script>
+
+<div id="comisionContainer" style="display: none; margin-top: 2rem;">
+  <h3 class="comision-title">Simulador de Comisión</h3>
+  <div class="resumen-box">
+    <div>Comisión generada: <span id="comisionCobrar" class="res-num">$0.00</span></div>
+    <div>Fondo de ahorro: <span id="comisionAhorro" class="res-num">$0.00</span></div>
+  </div>
+</div>
 
 </body>
 
