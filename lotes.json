@@ -163,6 +163,17 @@
             "45": { "precio": 760000, "enganche": 310000 }
           }
         }
+        "LF29 Esquina 2250m2": {
+          "Contado": 930000,
+          "Financiamiento": {
+            "6": { "precio": 937500, "enganche": 465000 },
+            "12": { "precio": 948750, "enganche": 465000 },
+            "18": { "precio": 963750, "enganche": 465000 },
+            "25": { "precio": 1001250, "enganche": 465000 },
+            "35": { "precio": 1046250, "enganche": 465000 },
+            "45": { "precio": 1106250, "enganche": 465000 }
+          }  
+        }  
       }
     },
     "Etapa 2": {
