@@ -1,9 +1,9 @@
-const CACHE_NAME = 'simulador-icn-v2';
+const CACHE_NAME = 'simulador-icn-v3';
 
 const urlsToCache = [
   './',
   './index.html',
-  './script.min.js',
+  './script.js',           // ← antes estaba './script.min.js'
   './lotes.json',
   './manifest.json',
   './assets/css/styles.css',
