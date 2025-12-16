@@ -175,6 +175,19 @@
           }  
         }  
       }
+      "2,250m2": {
+        "Un solo frente": {
+          "Contado": 930000,
+          "Financiamiento": {
+            "6": { "precio": 945000, "enganche": 450000 },
+            "12": { "precio": 967500, "enganche": 420000 },
+            "18": { "precio": 997500, "enganche": 330000 },
+            "25": { "precio": 1035000, "enganche": 240000 },
+            "35": { "precio": 1080000, "enganche": 210000 },
+            "45": { "precio": 1140000, "enganche": 180000 }
+          }
+        }
+      }    
     },
     "Etapa 2": {
       "750m2": {
