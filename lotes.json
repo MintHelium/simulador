@@ -375,6 +375,17 @@
             "35": { "precio": 967500, "enganche": 165000 },
             "45": { "precio": 1035000, "enganche": 135000 }
           }
+        },
+        "Un solo vecino": {
+          "Contado": 810000,
+          "Financiamiento": {
+            "6": { "precio": 825000, "enganche": 370000 },
+            "12": { "precio": 850000, "enganche": 345000 },
+            "18": { "precio": 877500, "enganche": 285000 },
+            "25": { "precio": 915000, "enganche": 200000 },
+            "35": { "precio": 967500, "enganche": 190000 },
+            "45": { "precio": 1035000, "enganche": 180000 }
+          }
         }
       }
     }
