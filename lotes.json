@@ -277,17 +277,6 @@
             "35": { "precio": 645000, "enganche": 270000 },
             "45": { "precio": 690000, "enganche": 270000 }
           }
-        },
-        "LF61 Esquina 2,250m2": {
-          "Contado": 810000,
-          "Financiamiento": {
-            "6": { "precio": 817500, "enganche": 405000 },
-            "12": { "precio": 828750, "enganche": 405000 },
-            "18": { "precio": 843750, "enganche": 405000 },
-            "25": { "precio": 915000, "enganche": 405000 },
-            "35": { "precio": 967500, "enganche": 405000 },
-            "45": { "precio": 1035000, "enganche": 405000 }
-          }
         }
       },
       "2,250m2": {
