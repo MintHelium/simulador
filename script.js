@@ -281,8 +281,12 @@ function actualizarResultados() {
 
     const comision = calcularComision(precioContado, enganche, plazoNum);
 
-    document.getElementById("comisionCobrar").textContent = `$${comision.cobrar.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
-    document.getElementById("comisionAhorro").textContent = `$${comision.ahorro.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
+    document.getElementById("comisionCobrar").textContent =
+      `$${comision.cobrar.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;    document.getElementById("comisionAhorro").textContent = `$${comision.ahorro.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
+    document.getElementById("comisionAhorro").textContent =
+      `$${comision.ahorro.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
+    document.getElementById("comisionTotal").textContent =
+      `$${comision.total.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
     return;
   }
 
@@ -370,9 +374,14 @@ function actualizarResultados() {
 
   const comision = calcularComision(precioContado, enganche, plazoNum);
 
-  document.getElementById("comisionCobrar").textContent = `$${comision.cobrar.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
-  document.getElementById("comisionAhorro").textContent = `$${comision.ahorro.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
+  document.getElementById("comisionCobrar").textContent =
+    `$${comision.cobrar.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
 
+  document.getElementById("comisionAhorro").textContent =
+    `$${comision.ahorro.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
+
+  document.getElementById("comisionTotal").textContent =
+    `$${comision.total.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
 }
 
 /* ======================================
@@ -394,23 +403,35 @@ function calcularComision(precioContado, enganche, plazoNum) {
 }
 
 function ajustarComision(comisionReal) {
-  const primerRedondeo = Math.floor(comisionReal / 500) * 500;
-  const segundoRedondeo = primerRedondeo - 500;
+  // Opción A: redondeo base a múltiplo de 500 (hacia abajo)
+  const cobrar500 = Math.floor(comisionReal / 500) * 500;
+  const ahorro500 = comisionReal - cobrar500;
 
-  const ahorro1 = comisionReal - primerRedondeo;
-  const ahorro2 = comisionReal - segundoRedondeo;
+  // Opción B: "último múltiplo de 1000 - otros 1000"
+  // => cobrar en (floor(x/1000)*1000 - 1000), ahorro = (pico sobre último 1000) + 1000
+  const ultimo1000 = Math.floor(comisionReal / 1000) * 1000;
+  const cobrar1000MenosOtro1000 = Math.max(0, ultimo1000 - 1000);
+  const ahorro1000MenosOtro1000 = comisionReal - cobrar1000MenosOtro1000; // pico + 1000
 
-  if (ahorro2 <= 1000 && segundoRedondeo > 0) {
-    return {
-      cobrar: segundoRedondeo,
-      ahorro: ahorro2
-    };
-  } else {
-    return {
-      cobrar: primerRedondeo,
-      ahorro: ahorro1
-    };
+  // Regla práctica:
+  // Si el ahorro "normal" queda demasiado bajo, usamos la opción del 1000-1000
+  // para que el ahorro no sea "poquito" (y se sienta mejor a fin de año).
+  // Ajusta este umbral si quieres (ej: 200, 300, 400).
+  const UMBRAL_AHORRO_MINIMO = 300;
+
+  let cobrarFinal = cobrar500;
+  let ahorroFinal = ahorro500;
+
+  if (ahorro500 < UMBRAL_AHORRO_MINIMO && cobrar1000MenosOtro1000 > 0) {
+    cobrarFinal = cobrar1000MenosOtro1000;
+    ahorroFinal = ahorro1000MenosOtro1000;
   }
+
+  return {
+    cobrar: cobrarFinal,
+    ahorro: ahorroFinal,
+    total: comisionReal,
+  };
 }
 
 /* ======================================
