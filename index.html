@@ -10,20 +10,41 @@
   <title>Simulador de Crédito</title>
   
   <!-- ICONOS & PWA -->
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" id="manifestLink" href="manifest.json">
   <link rel="apple-touch-icon" href="assets/image/icons/icon-180.png">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/image/icons/favicon-32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="assets/image/icons/favicon-16.png">
   
   <!-- ESTILOS -->
   <link rel="stylesheet" href="assets/css/styles.css" />
+
+<script>
+  (function () {
+    const isCantera = window.location.hostname.toLowerCase().includes("cantera");
+
+    if (isCantera) {
+      // 1) Cambia el manifest para que la app se llame "Simulador Cantera"
+      const manifest = document.getElementById("manifestLink");
+      if (manifest) manifest.setAttribute("href", "manifest-cantera.json");
+
+      // 2) Cambia el título del navegador
+      document.title = "Simulador Cantera";
+
+      // 3) Cambia el H1 cuando ya exista en el DOM
+      document.addEventListener("DOMContentLoaded", () => {
+        const h1 = document.getElementById("pageTitle");
+        if (h1) h1.textContent = "Simulador Cantera";
+      });
+    }
+  })();
+</script>
 </head>  
 <body>
   <header class="icn-header">
     <img id="logo" src="assets/image/brand/logo-icn.png" alt="ICN Logo" class="logo-icn" />
   </header>  
   
-  <h1>Simulador de Crédito</h1>
+  <h1 id="pageTitle">Simulador de Crédito</h1>
 
   <!-- Selects principales -->
   <label>Desarrollo:</label>
@@ -89,7 +110,7 @@
 <!-- Resultados -->
 <h2>Cotización</h2>
 <div>Enganche: <span id="resEnganche" class="res-num">$0.00</span></div>
-<div>Mensualidad: <span id="mensualidad"><span class="res-num">$0.00</span></span>
+<div>Mensualidad: <span id="mensualidad"><span class="res-num">$0.00</span></span></div>
 <div id="anualidadesResultadoDiv" style="display: none;">
   <span>Anualidades:</span> <span id="anualidadesResumen">N/A</span>
 </div>
@@ -119,12 +140,12 @@
   </div>
 </div>
 
-</body>
-
 <footer class="leyenda-legal">
   <p>
     Este simulador tiene fines informativos y de orientación. No representa una oferta formal de financiamiento. Los montos, plazos y condiciones pueden variar sin previo aviso. Consulte con un asesor ICN para más detalles.
   </p>
 </footer>
 
+</body>
 </html>
+
