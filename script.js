@@ -282,9 +282,11 @@ function actualizarResultados() {
     const comision = calcularComision(precioContado, enganche, plazoNum);
 
     document.getElementById("comisionCobrar").textContent =
-      `$${comision.cobrar.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;    document.getElementById("comisionAhorro").textContent = `$${comision.ahorro.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
+      `$${comision.cobrar.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
+
     document.getElementById("comisionAhorro").textContent =
       `$${comision.ahorro.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
+
     document.getElementById("comisionTotal").textContent =
       `$${comision.total.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
     return;
@@ -387,6 +389,11 @@ function actualizarResultados() {
 /* ======================================
    5) Calculo de Comisión 
 ====================================== */
+function getCommissionMultiplier() {
+  const host = window.location.hostname.toLowerCase();
+  return host.includes("cantera") ? 0.7 : 1.0;
+}
+
 function calcularComision(precioContado, enganche, plazoNum) {
   const ventaComision = precioContado * 0.05;
 
@@ -399,10 +406,17 @@ function calcularComision(precioContado, enganche, plazoNum) {
 
   const comisionTotalReal = ventaComision + plazoComision + engancheComision;
 
-  return ajustarComision(comisionTotalReal);
+  // ✅ Multiplicador (normal 1.0 / cantera 0.7)
+  const multiplier = getCommissionMultiplier();
+  const comisionEscalada = comisionTotalReal * multiplier;
+
+  return ajustarComision(comisionEscalada);
 }
 
 function ajustarComision(comisionReal) {
+  // ✅ Quita centavos (pesos enteros)
+  comisionReal = Math.round(comisionReal);
+  
   // Opción A: redondeo base a múltiplo de 500 (hacia abajo)
   const cobrar500 = Math.floor(comisionReal / 500) * 500;
   const ahorro500 = comisionReal - cobrar500;
@@ -572,3 +586,4 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 });
+
