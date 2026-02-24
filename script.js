@@ -18,6 +18,7 @@ const mensualidadInput = document.getElementById("mensualidadInput");
 const resEngancheSpan = document.getElementById("resEnganche");
 const mensualidadSpan = document.getElementById("mensualidad");
 const valorTotalSpan = document.getElementById("valorTotal");
+const ahorroSpan = document.getElementById("ahorro");
 const anualidadesResumenSpan = document.getElementById("anualidadesResumen");
 
 const infoEtapaDiv = document.getElementById("infoEtapa");
@@ -68,6 +69,7 @@ function resetCamposDesde(nivel) {
   resEngancheSpan.textContent = "$0.00";
   mensualidadSpan.textContent = "$0.00";
   valorTotalSpan.textContent = "$0.00";
+  ahorroSpan.textContent = "$0.00";
 
   if (nivel === "desarrollo" || nivel === "etapa") {
     infoEtapaDiv.textContent = "";
@@ -271,12 +273,23 @@ function actualizarResultados() {
 
   const precioContado = dataLote.Contado || 0;
 
+  // Ahorro (definición A): contra el plan más largo disponible
+  let precioPlanLargo = 0;
+  if (dataLote.Financiamiento && typeof dataLote.Financiamiento === "object") {
+    const plazos = Object.keys(dataLote.Financiamiento).map(n => parseInt(n)).filter(n => !isNaN(n));
+    const plazoLargo = plazos.length ? Math.max(...plazos) : 0;
+    const planLargo = dataLote.Financiamiento[plazoLargo];
+    if (planLargo && typeof planLargo.precio === "number") {
+      precioPlanLargo = planLargo.precio;
+    }
+  }
+
   if (formaPago === "Contado") {
     const enganche = precioContado;
 
     engancheInput.value = `${precioContado}`;
     mensualidadSpan.textContent = "$0.00";
-    valorTotalSpan.textContent = `$${precioContado.toLocaleString("es-MX")}`;
+    valorTotalSpan.textContent = `$${precioContado.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
     resEngancheSpan.textContent = `$${precioContado.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
 
     const comision = calcularComision(precioContado, enganche, plazoNum);
@@ -289,6 +302,10 @@ function actualizarResultados() {
 
     document.getElementById("comisionTotal").textContent =
       `$${comision.total.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
+    // Mostrar Ahorro en contado (vs plan más largo)
+    let ahorro = precioPlanLargo - precioContado;
+    if (ahorro < 0 || !isFinite(ahorro)) ahorro = 0;
+    ahorroSpan.textContent = `$${ahorro.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
     return;
   }
 
@@ -321,6 +338,10 @@ function actualizarResultados() {
   if (!plan) return;
 
   const precio = plan.precio;
+  // Mostrar Ahorro en financiamiento (vs plan más largo)
+  let ahorro = precioPlanLargo - precio;
+  if (ahorro < 0 || !isFinite(ahorro)) ahorro = 0;
+  ahorroSpan.textContent = `$${ahorro.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
   const engancheMin = plan.enganche;
 
   let enganche = parseFloat(engancheInput.value) || 0;
