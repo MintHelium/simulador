@@ -102,6 +102,19 @@ function resetCamposDesde(nivel) {
   valorTotalSpan.textContent = "$0.00";
   ahorroSpan.textContent = "$0.00";
 
+  // 🔁 Reset anualidades cuando cambias cualquier campo ANTES de "plazo"
+  if (nivel !== "plazo") {
+    plazoAnualidadPrevio = null;
+    anualidadMontoEditadoPorUsuario = false;
+
+    // Para que al elegir plazo de nuevo arranque en el máximo (aunque el HTML traiga 40000)
+    anualidadMontoInput.value = "0";
+
+    // Reset UI de anualidades
+    anualidadesSelect.value = "0";
+    anualidadMontoGroup.style.display = "none";
+  }
+
   if (nivel === "desarrollo" || nivel === "etapa") {
     infoEtapaDiv.textContent = "";
   }
