@@ -30,6 +30,9 @@ const btnAnualidadMas = document.getElementById("btnAnualidadMas");
 const btnAnualidadMenos = document.getElementById("btnAnualidadMenos");
 const anualidadMontoGroup = document.getElementById("anualidadMontoGroup");
 
+let anualidadMontoEditadoPorUsuario = false;
+let plazoAnualidadPrevio = null;
+
 // ==========================
 // ANUALIDADES (NUEVA LÓGICA)
 // ==========================
@@ -358,19 +361,33 @@ function actualizarResultados() {
   // Nuevo tope dinámico por anualidad según plazo (mantiene pool ~160k)
   const montoMaxPorAnualidad = getMontoMaxPorAnualidad(plazoNum);
 
-  // Si el usuario trae un monto viejo (ej 80k) y cambia a 45m, lo clamp
-  let montoActual = parseFloat(anualidadMontoInput.value) || 0;
-  if (montoActual <= 0) {
-    // Si está vacío o 0, sugerimos el máximo "bonito" del plazo actual
-    montoActual = montoMaxPorAnualidad;
+  // Detectar cambio de plazo para decidir si auto-maximizamos o respetamos input
+  const plazoCambio = plazoAnualidadPrevio !== plazoNum;
+
+  let montoActual = parseFloat(anualidadMontoInput.value);
+  if (!isFinite(montoActual) || montoActual < 0) montoActual = 0;
+
+  if (plazoCambio) {
+    if (!anualidadMontoEditadoPorUsuario) {
+      // Si el usuario no lo tocó, default al máximo del plazo
+      montoActual = montoMaxPorAnualidad;
+    } else {
+      // Si el usuario sí lo tocó, respetar y solo clamping al máximo nuevo
+      if (montoActual > montoMaxPorAnualidad) montoActual = montoMaxPorAnualidad;
+    }
+
+    // Registrar el plazo actual y resetear el flag de edición
+    plazoAnualidadPrevio = plazoNum;
+    anualidadMontoEditadoPorUsuario = false;
+  } else {
+    // Mismo plazo: solo clamp por seguridad
+    if (montoActual > montoMaxPorAnualidad) montoActual = montoMaxPorAnualidad;
   }
-  if (montoActual > montoMaxPorAnualidad) montoActual = montoMaxPorAnualidad;
 
-// Redondeo a múltiplos de 1000 para mantener tu UX de +1000/-1000
-// (si prefieres que el input también sea múltiplo de 5000, me dices y lo ajustamos)
-montoActual = Math.round(montoActual / 1000) * 1000;
+  // Redondeo a múltiplos de 1000 para mantener tu UX de +1000/-1000
+  montoActual = Math.round(montoActual / 1000) * 1000;
 
-anualidadMontoInput.value = `${montoActual}`;
+  anualidadMontoInput.value = `${montoActual}`;
    
   const plan = dataLote.Financiamiento[plazoNum];
   const numAnualidades = parseInt(anualidadesSelect.value) || 0;
@@ -625,6 +642,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     anualidadMontoInput.value = val;
     actualizarResultados();
+  });
+
+  anualidadMontoInput.addEventListener("input", () => {
+    anualidadMontoEditadoPorUsuario = true;
   });
   
   btnAnualidadMenos.addEventListener("click", () => {
