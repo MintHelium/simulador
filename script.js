@@ -372,8 +372,8 @@ function actualizarResultados() {
     // Solo inicializamos el "previo" sin tocar el flag ni el monto del usuario
     plazoAnualidadPrevio = plazoNum;
 
-    // Si no hay monto (0 / vacío), sugerimos el máximo del plazo actual
-    if (!anualidadMontoEditadoPorUsuario && montoActual <= 0) {
+    // Primera vez: si el usuario no ha editado, default al máximo del plazo actual
+    if (!anualidadMontoEditadoPorUsuario) {
       montoActual = montoMaxPorAnualidad;
     } else if (montoActual > montoMaxPorAnualidad) {
       montoActual = montoMaxPorAnualidad;
