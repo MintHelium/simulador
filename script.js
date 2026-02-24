@@ -362,12 +362,23 @@ function actualizarResultados() {
   const montoMaxPorAnualidad = getMontoMaxPorAnualidad(plazoNum);
 
   // Detectar cambio de plazo para decidir si auto-maximizamos o respetamos input
-  const plazoCambio = plazoAnualidadPrevio !== plazoNum;
+  const esPrimeraVezPlazo = (plazoAnualidadPrevio === null);
+  const plazoCambio = (!esPrimeraVezPlazo && plazoAnualidadPrevio !== plazoNum);
 
   let montoActual = parseFloat(anualidadMontoInput.value);
   if (!isFinite(montoActual) || montoActual < 0) montoActual = 0;
 
-  if (plazoCambio) {
+  if (esPrimeraVezPlazo) {
+    // Solo inicializamos el "previo" sin tocar el flag ni el monto del usuario
+    plazoAnualidadPrevio = plazoNum;
+
+    // Si no hay monto (0 / vacío), sugerimos el máximo del plazo actual
+    if (!anualidadMontoEditadoPorUsuario && montoActual <= 0) {
+      montoActual = montoMaxPorAnualidad;
+    } else if (montoActual > montoMaxPorAnualidad) {
+      montoActual = montoMaxPorAnualidad;
+    }
+  } else if (plazoCambio) {
     if (!anualidadMontoEditadoPorUsuario) {
       // Si el usuario no lo tocó, default al máximo del plazo
       montoActual = montoMaxPorAnualidad;
@@ -376,7 +387,7 @@ function actualizarResultados() {
       if (montoActual > montoMaxPorAnualidad) montoActual = montoMaxPorAnualidad;
     }
 
-    // Registrar el plazo actual y resetear el flag de edición
+    // Registrar el plazo actual y ahora sí “cerramos” la edición
     plazoAnualidadPrevio = plazoNum;
     anualidadMontoEditadoPorUsuario = false;
   } else {
@@ -641,6 +652,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (val > montoMax) val = montoMax;
 
     anualidadMontoInput.value = val;
+    anualidadMontoEditadoPorUsuario = true; 
     actualizarResultados();
   });
 
@@ -652,6 +664,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let val = parseFloat(anualidadMontoInput.value) || 0;
     val = Math.max(0, val - 1000);
     anualidadMontoInput.value = val;
+    anualidadMontoEditadoPorUsuario = true; 
     actualizarResultados();
   });
   
