@@ -155,3 +155,8 @@ input[type="radio"] {
   color: var(--verde-icn);
   font-weight: normal;
 }
+
+.ahorro-row {
+  margin-top: 1rem;     /* espacio entre Valor Total y Ahorro */
+  font-size: 1.15rem;   /* “un poco más grande” */
+}
