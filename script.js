@@ -382,14 +382,18 @@ function actualizarResultados() {
     if (!anualidadMontoEditadoPorUsuario) {
       // Si el usuario no lo tocó, default al máximo del plazo
       montoActual = montoMaxPorAnualidad;
+
+      // Como fue automático, seguimos considerando "no editado"
+      anualidadMontoEditadoPorUsuario = false;
     } else {
       // Si el usuario sí lo tocó, respetar y solo clamping al máximo nuevo
       if (montoActual > montoMaxPorAnualidad) montoActual = montoMaxPorAnualidad;
+
+      // IMPORTANTE: NO apagar el flag aquí para respetar cambios subsecuentes
     }
 
-    // Registrar el plazo actual y ahora sí “cerramos” la edición
+    // Registrar el plazo actual
     plazoAnualidadPrevio = plazoNum;
-    anualidadMontoEditadoPorUsuario = false;
   } else {
     // Mismo plazo: solo clamp por seguridad
     if (montoActual > montoMaxPorAnualidad) montoActual = montoMaxPorAnualidad;
