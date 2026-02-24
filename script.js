@@ -30,6 +30,34 @@ const btnAnualidadMas = document.getElementById("btnAnualidadMas");
 const btnAnualidadMenos = document.getElementById("btnAnualidadMenos");
 const anualidadMontoGroup = document.getElementById("anualidadMontoGroup");
 
+// ==========================
+// ANUALIDADES (NUEVA LÓGICA)
+// ==========================
+const POOL_ANUALIDADES_OBJETIVO = 160000; // objetivo total (ej. 45m = 4x40k = 160k)
+const MULTIPLO_ANUALIDAD = 5000;          // redondeo a múltiplos de 5000
+
+function redondearAlMultiploMasCercano(valor, multiplo) {
+  if (!isFinite(valor) || multiplo <= 0) return 0;
+  return Math.round(valor / multiplo) * multiplo;
+}
+
+function getMaxAnualidadesPorPlazo(plazoNum) {
+  if (plazoNum >= 45) return 4;
+  if (plazoNum >= 35) return 3;
+  if (plazoNum >= 25) return 2;
+  if (plazoNum >= 12) return 1;
+  return 0;
+}
+
+function getMontoMaxPorAnualidad(plazoNum) {
+  const maxAnualidades = getMaxAnualidadesPorPlazo(plazoNum);
+  if (maxAnualidades <= 0) return 0;
+  const base = POOL_ANUALIDADES_OBJETIVO / maxAnualidades;
+  // múltiplo más cercano (ej. 160/3=53,333 => 55,000)
+  const redondeado = redondearAlMultiploMasCercano(base, MULTIPLO_ANUALIDAD);
+  return Math.max(0, redondeado);
+}
+
 /* ==========================
    1) CARGA DE DATOS JSON
 ========================== */
@@ -310,11 +338,7 @@ function actualizarResultados() {
   }
 
   // ✅ Financiamiento
-  let maxAnualidades = 0;
-  if (plazoNum >= 12 && plazoNum < 25) maxAnualidades = 1;
-  else if (plazoNum >= 25 && plazoNum < 35) maxAnualidades = 2;
-  else if (plazoNum >= 35 && plazoNum < 45) maxAnualidades = 3;
-  else if (plazoNum >= 45) maxAnualidades = 4;
+  let maxAnualidades = getMaxAnualidadesPorPlazo(plazoNum);
 
   const selectedAnualidad = anualidadesSelect.value;
 
@@ -331,6 +355,23 @@ function actualizarResultados() {
     anualidadesSelect.value = "0"; // Reiniciamos a 0 si ya no aplica
   }
 
+  // Nuevo tope dinámico por anualidad según plazo (mantiene pool ~160k)
+  const montoMaxPorAnualidad = getMontoMaxPorAnualidad(plazoNum);
+
+  // Si el usuario trae un monto viejo (ej 80k) y cambia a 45m, lo clamp
+  let montoActual = parseFloat(anualidadMontoInput.value) || 0;
+  if (montoActual <= 0) {
+    // Si está vacío o 0, sugerimos el máximo "bonito" del plazo actual
+    montoActual = montoMaxPorAnualidad;
+  }
+  if (montoActual > montoMaxPorAnualidad) montoActual = montoMaxPorAnualidad;
+
+// Redondeo a múltiplos de 1000 para mantener tu UX de +1000/-1000
+// (si prefieres que el input también sea múltiplo de 5000, me dices y lo ajustamos)
+montoActual = Math.round(montoActual / 1000) * 1000;
+
+anualidadMontoInput.value = `${montoActual}`;
+   
   const plan = dataLote.Financiamiento[plazoNum];
   const numAnualidades = parseInt(anualidadesSelect.value) || 0;
   const montoAnualidad = parseFloat(anualidadMontoInput.value) || 0;
@@ -574,11 +615,16 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   
   btnAnualidadMas.addEventListener("click", () => {
+    const plazoNum = parseInt(plazoSelect.value) || 0;
+    const montoMax = getMontoMaxPorAnualidad(plazoNum);
+
     let val = parseFloat(anualidadMontoInput.value) || 0;
-    if (val < 40000) {
-      anualidadMontoInput.value = val + 1000;
-      actualizarResultados();
-    }
+    val = val + 1000;
+
+    if (val > montoMax) val = montoMax;
+
+    anualidadMontoInput.value = val;
+    actualizarResultados();
   });
   
   btnAnualidadMenos.addEventListener("click", () => {
