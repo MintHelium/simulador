@@ -32,6 +32,7 @@ const anualidadMontoGroup = document.getElementById("anualidadMontoGroup");
 
 let anualidadMontoEditadoPorUsuario = false;
 let plazoAnualidadPrevio = null;
+let anualidadesEditadoPorUsuario = false;
 
 // ==========================
 // ANUALIDADES (NUEVA LÓGICA)
@@ -106,6 +107,7 @@ function resetCamposDesde(nivel) {
   if (nivel !== "plazo") {
     plazoAnualidadPrevio = null;
     anualidadMontoEditadoPorUsuario = false;
+    anualidadesEditadoPorUsuario = false;
 
     // Para que al elegir plazo de nuevo arranque en el máximo (aunque el HTML traiga 40000)
     anualidadMontoInput.value = "0";
@@ -189,7 +191,7 @@ function llenarFormasDePago() {
 }
 
 function llenarPlazos() {
-  resetCamposDesde("plazo");
+  resetCamposDesde("pago");
   const desarrollo = desarrolloSelect.value;
   const etapa = etapaSelect.value;
   const tamano = tamanoSelect.value;
@@ -213,19 +215,6 @@ function llenarPlazos() {
   }
   habilitarInputs();
 
-  zonaAnualidadesDiv.style.display = formaPago === "Financiamiento" ? "block" : "none";
-  anualidadesSelect.innerHTML = "<option value='0'>0</option>";
-  anualidadesSelect.disabled = true;
-  anualidadMontoGroup.style.display = "none";
-
-  if (formaPago === "Financiamiento") {
-    const plazoKeys = Object.keys(dataTipo.Financiamiento);
-    plazoSelect.innerHTML = "<option value=''>Seleccione un plazo</option>";
-    plazoKeys.forEach(p => {
-      plazoSelect.innerHTML += `<option value="${p}">${p} meses</option>`;
-    });
-    plazoSelect.disabled = false;
-  } 
 }
 
 /* ==================================
@@ -364,11 +353,19 @@ function actualizarResultados() {
   }
   anualidadesSelect.disabled = false;
 
-  // Si la opción seleccionada sigue siendo válida, la volvemos a aplicar
-  if (parseInt(selectedAnualidad) <= maxAnualidades) {
+  // Si la opción seleccionada sigue siendo válida, la volvemos a aplicar.
+  // Si no aplica (ej. 4 -> max 3), clamp al máximo, NO a 0.
+  // Si el usuario no lo ha tocado y está en 0 / vacío, default al máximo.
+  const sel = parseInt(selectedAnualidad);
+
+  if (maxAnualidades === 0) {
+    anualidadesSelect.value = "0";
+  } else if (!anualidadesEditadoPorUsuario && (!isFinite(sel) || sel === 0)) {
+    anualidadesSelect.value = `${maxAnualidades}`;
+  } else if (isFinite(sel) && sel <= maxAnualidades) {
     anualidadesSelect.value = selectedAnualidad;
   } else {
-    anualidadesSelect.value = "0"; // Reiniciamos a 0 si ya no aplica
+    anualidadesSelect.value = `${maxAnualidades}`;
   }
 
   // Nuevo tope dinámico por anualidad según plazo (mantiene pool ~160k)
@@ -656,6 +653,7 @@ document.addEventListener("DOMContentLoaded", () => {
   anualidadesSelect.addEventListener("change", () => {
     const n = parseInt(anualidadesSelect.value);
     anualidadMontoGroup.style.display = n > 0 ? "block" : "none";
+    anualidadesEditadoPorUsuario = true;
     actualizarResultados();
   });
   
