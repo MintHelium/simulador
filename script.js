@@ -207,7 +207,12 @@ function llenarPlazos() {
       plazoSelect.innerHTML += `<option value="${p}">${p} meses</option>`;
     });
     plazoSelect.disabled = false;
+    // ✅ MOSTRAR anualidades en financiamiento
+    zonaAnualidadesDiv.style.display = "block";
+    anualidadesSelect.disabled = false;
   } else {
+    zonaAnualidadesDiv.style.display = "none";
+ 
     plazoSelect.innerHTML = "<option value=''>N/A</option>";
     plazoSelect.disabled = true;
     // Contado
@@ -368,6 +373,8 @@ function actualizarResultados() {
     anualidadesSelect.value = `${maxAnualidades}`;
   }
 
+  anualidadMontoGroup.style.display = (parseInt(anualidadesSelect.value) > 0) ? "block" : "none";
+  
   // Nuevo tope dinámico por anualidad según plazo (mantiene pool ~160k)
   const montoMaxPorAnualidad = getMontoMaxPorAnualidad(plazoNum);
 
