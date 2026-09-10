@@ -136,17 +136,6 @@
             "35": { "precio": 695000, "enganche": 295000 },
             "45": { "precio": 740000, "enganche": 295000 }
           }
-        },
-        "L151 Triple Frente 2250m2": {
-          "Contado": 885000,
-          "Financiamiento": {
-            "6": { "precio": 900000, "enganche": 442500 },
-            "12": { "precio": 922500, "enganche": 442500 },
-            "18": { "precio": 952500, "enganche": 442500 },
-            "25": { "precio": 990000, "enganche": 442500 },
-            "35": { "precio": 1042500, "enganche": 442500 },
-            "45": { "precio": 1110000, "enganche": 442500 }
-          }
         }
       },
       "2250m2": {
@@ -159,6 +148,17 @@
             "25": { "precio": 990000, "enganche": 210000 },
             "35": { "precio": 1042500, "enganche": 180000 },
             "45": { "precio": 1110000, "enganche": 150000 }
+          }
+        },
+        "L151 Triple Frente 2250m2": {
+          "Contado": 885000,
+          "Financiamiento": {
+            "6": { "precio": 900000, "enganche": 442500 },
+            "12": { "precio": 922500, "enganche": 442500 },
+            "18": { "precio": 952500, "enganche": 442500 },
+            "25": { "precio": 990000, "enganche": 442500 },
+            "35": { "precio": 1042500, "enganche": 442500 },
+            "45": { "precio": 1110000, "enganche": 442500 }
           }
         }
       }
@@ -419,6 +419,5 @@
     }
   }
 }
-
 
 

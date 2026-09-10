@@ -84,6 +84,9 @@ test('authorized price matrices and neighbor rules only: no other leaf changed',
   sizes[size][type]={Contado:base.Contado,Financiamiento:Object.fromEntries(
    Object.entries(base.Financiamiento).map(([term,plan])=>[term,{precio:plan.precio,enganche:base.Contado*0.25}]))};
  }
+ const cdg4=expected['Cañón de Gomas']['Etapa 4'];
+ cdg4['2250m2']['L151 Triple Frente 2250m2']=cdg4['1500m2']['L151 Triple Frente 2250m2'];
+ delete cdg4['1500m2']['L151 Triple Frente 2250m2'];
  assert.deepEqual(data,expected);
 });
 test('reset clears commissions, annualities and downstream payment; cash-only mode safe',()=>{
@@ -129,8 +132,22 @@ test('CDG1 excluded and every existing special lot preserved',()=>{
  for(const [dev,stages] of Object.entries(prior)) for(const [stage,sizes] of Object.entries(stages))
   for(const [size,types] of Object.entries(sizes)) for(const [type,lot] of Object.entries(types)) {
    if(size==='2250m2' && type==='Un solo frente') continue;
+   if(dev==='Cañón de Gomas' && stage==='Etapa 4' && type==='L151 Triple Frente 2250m2') continue;
    assert.deepEqual(data[dev][stage][size][type],lot,`${dev}/${stage}/${size}/${type}`);
   }
+});
+test('CDG4 L151 exists only under 2250 and preserves its original catalog values',()=>{
+ const prior=JSON.parse(execFileSync('git',['show','68822e0:lotes.json'],{cwd:root}));
+ const stage=data['Cañón de Gomas']['Etapa 4'];
+ const original=prior['Cañón de Gomas']['Etapa 4']['1500m2']['L151 Triple Frente 2250m2'];
+ assert.equal(stage['1500m2']['L151 Triple Frente 2250m2'],undefined);
+ assert.deepEqual(stage['2250m2']['L151 Triple Frente 2250m2'],original);
+ let occurrences=0;
+ for(const types of Object.values(stage)) {
+  if(types['L151 Triple Frente 2250m2']) occurrences++;
+ }
+ assert.equal(occurrences,1);
+ assert.ok(stage['2250m2']['Un solo frente']);
 });
 test('LF4 neighbor lots: same prices and terms, 25 percent cash deposit for every term',()=>{
  const sizes=data['Campestre Las Flores']['Etapa 4'];
