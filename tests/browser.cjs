@@ -11,6 +11,33 @@ const baseUrl=process.env.SIMULADOR_URL || 'http://127.0.0.1:8765';
  page.on('pageerror',e=>errors.push(e.message));
  page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});
  await page.goto(baseUrl);
+ // Installed icons must decode at their declared sizes with a solid CSS sand background.
+ const iconChecks=await page.evaluate(async()=>{
+  const manifest=await (await fetch('manifest.json')).json();
+  const sand=getComputedStyle(document.documentElement).getPropertyValue('--crema').trim();
+  const rgb=sand.slice(1).match(/../g).map(hex=>parseInt(hex,16));
+  const checks=[];
+  for(const icon of manifest.icons) {
+   const img=new Image();img.src=icon.src;await img.decode();
+   const canvas=document.createElement('canvas');canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;
+   const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0);
+   const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+   let opaque=true;
+   for(let i=3;i<pixels.length;i+=4) if(pixels[i]!==255) opaque=false;
+   const corners=[0,canvas.width-1,(canvas.height-1)*canvas.width,canvas.width*canvas.height-1];
+   const sandCorners=corners.every(p=>rgb.every((value,c)=>pixels[p*4+c]===value));
+   checks.push({size:`${img.naturalWidth}x${img.naturalHeight}`,declared:icon.sizes,opaque,sandCorners});
+  }
+  return {checks,sand,background:manifest.background_color,theme:manifest.theme_color,
+   apple:document.querySelector('link[rel="apple-touch-icon"]').getAttribute('href')};
+ });
+ assert.equal(iconChecks.background,iconChecks.sand);
+ assert.equal(iconChecks.theme,iconChecks.sand);
+ assert.equal(iconChecks.apple,'assets/image/icons/icon-180.png');
+ assert.deepEqual(iconChecks.checks.map(c=>c.size).sort(),['180x180','192x192','512x512']);
+ for(const check of iconChecks.checks) {
+  assert.equal(check.size,check.declared);assert.ok(check.opaque);assert.ok(check.sandCorners);
+ }
  const select=async(id,value)=>page.selectOption('#'+id,value);
  const value=id=>page.inputValue('#'+id);
  const text=id=>page.textContent('#'+id);
