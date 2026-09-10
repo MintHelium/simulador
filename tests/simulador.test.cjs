@@ -1,0 +1,93 @@
+const {test} = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const {execFileSync} = require('node:child_process');
+const path = require('node:path');
+const root = path.join(__dirname, '..');
+const source = fs.readFileSync(path.join(root, 'script.js'), 'utf8');
+const data = JSON.parse(fs.readFileSync(path.join(root, 'lotes.json')));
+function setup(fetch = async () => ({ok:true,json:async()=>data})) {
+  const elements = {};
+  const element = id => elements[id] ||= {value:'',textContent:'',innerHTML:'',disabled:false,style:{},parentElement:{style:{}},addEventListener(){}};
+  const ctx = vm.createContext({document:{getElementById:element,addEventListener(){}},window:{location:{hostname:'localhost'}},fetch,console:{error(){}}});
+  vm.runInContext(source, ctx);
+  return {ctx, element};
+}
+const {ctx} = setup();
+function invariant(r, price, n, count) {
+  assert.ok(r);
+  assert.ok(r.plan.mensualBase >= 2000);
+  assert.ok(r.plan.ultima >= 0);
+  assert.ok(r.enganche + count*r.monto < price);
+  assert.equal(Math.round((r.enganche+count*r.monto+r.plan.pagosNormales*r.plan.mensualBase+r.plan.ultima)*100),Math.round(price*100));
+  assert.equal(r.plan.pagosNormales+(r.plan.ultima>0?1:0),n);
+}
+test('catalog: all financed plans, all allowed counts, both modes and extremes',()=>{
+  let cases=0;
+  for(const dev of Object.values(data)) for(const stage of Object.values(dev)) {
+    if(typeof stage !== 'object') continue;
+    for(const size of Object.values(stage)) for(const lot of Object.values(size)) for(const [term,plan] of Object.entries(lot.Financiamiento||{})) {
+      const plazo=Number(term);
+      for(let cantidad=0;cantidad<=ctx.getMaxAnualidadesPorPlazo(plazo);cantidad++)
+      for(const modo of ['enganche','mensualidad']) for(const value of [0,1999,2000,2000.01,125000,1e9]) {
+        const r=ctx.limitarFinanciamiento({precio:plan.precio,precioContado:lot.Contado,minimo:plan.enganche,plazo,cantidad,monto:1e9,modo,enganche:value,mensualidad:value});
+        invariant(r,plan.precio,plazo,cantidad);
+        assert.ok(r.enganche>=plan.enganche && r.enganche<=lot.Contado);
+        cases++;
+      }
+    }
+  }
+  console.log('Validated scenarios:',cases);
+});
+test('minimum, rounding cents, previous negative final payment and impossible plan',()=>{
+ for(const plazo of [6,12,18,25,35,45]) {
+  assert.equal(ctx.calcularPlanMensualidades(2000*plazo,0,plazo).mensualBase,2000);
+  for(const extra of [0.01,1,49,199,201,999]) {
+   const plan=ctx.calcularPlanMensualidades(2000*plazo+extra,0,plazo);
+   invariant({plan,enganche:0,monto:0},2000*plazo+extra,plazo,0);
+  }
+ }
+ assert.equal(ctx.calcularPlanMensualidades(100,0,45),null);
+ assert.equal(ctx.limitarFinanciamiento({precio:10000,precioContado:9000,minimo:5000,plazo:6}),null);
+});
+test('commission transfer boundaries and existing normal calculation',()=>{
+ for(const ahorro of [0,1,100,333,749,750,751]) for(const cobrar of [0,999,1000,18000]) {
+  const r=ctx.aplicarAhorroAdicional({cobrar,ahorro,total:cobrar+ahorro});
+  const move=ahorro>0&&ahorro<750&&cobrar>=1000?1000:0;
+  assert.equal(r.cobrar,cobrar-move);assert.equal(r.ahorro,ahorro+move);assert.equal(r.total,r.cobrar+r.ahorro);
+ }
+ assert.equal(ctx.ajustarComision(18333).cobrar,17000);
+ assert.equal(ctx.ajustarComision(18333).ahorro,1333);
+});
+test('numeric inputs never partially parse commas or garbage',()=>{
+ for(const s of ['125000','125,000']) assert.equal(ctx.leerImporte(s),125000);
+ assert.equal(ctx.leerImporte('125,000.25'),125000.25);
+ for(const s of ['125,00','12x','Infinity','-2','']) assert.equal(ctx.leerImporte(s),0);
+});
+test('LF equivalent matrices only: no other leaf changed',()=>{
+ const old=JSON.parse(execFileSync('git',['show','4262e23:lotes.json'],{cwd:root}));
+ const expected=structuredClone(old);
+ for(const stage of ['Etapa 2','Etapa 3','Etapa 4']) for(const [size,types] of Object.entries(expected['Campestre Las Flores'][stage])) for(const type of Object.keys(types)) {
+  const reference=data['Cañón de Gomas']['Etapa 3'][size]?.[type];
+  if(reference) types[type]=reference;
+ }
+ assert.deepEqual(data,expected);
+});
+test('reset clears commissions, annualities and downstream payment; cash-only mode safe',()=>{
+ const {ctx,element:e}=setup();ctx.lotesData=data;vm.runInContext('lotesData = globalThis.lotesData',ctx);
+ for(const [id,v] of Object.entries({desarrollo:'Cañón de Gomas',etapa:'Etapa 1',tamano:'1500m2',tipo:'Un solo frente'})) e(id).value=v;
+ vm.runInContext('modoCalculo="mensualidad"; actualizarResultados()',ctx);
+ assert.equal(e('valorTotal').textContent,'$0.00');
+ e('pago').value='Contado';ctx.actualizarResultados();assert.equal(e('valorTotal').textContent,'$680,000.00');
+ ctx.resetCamposDesde('tipo');
+ for(const id of ['comisionCobrar','comisionAhorro','comisionTotal','valorTotal']) assert.equal(e(id).textContent,'$0.00');
+ assert.equal(e('anualidadesResumen').parentElement.style.display,'none');
+ assert.equal(e('pago').disabled,true);
+});
+test('catalog failure visible for HTTP and malformed JSON',async()=>{
+ for(const fetch of [async()=>({ok:false,status:500}),async()=>({ok:true,json:async()=>{throw Error('JSON')}})]) {
+  const {ctx,element:e}=setup(fetch); await ctx.cargarDatos();
+  assert.match(e('errorCarga').textContent,/No se pudo cargar/);assert.equal(e('desarrollo').disabled,true);
+ }
+});

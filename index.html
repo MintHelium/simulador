@@ -46,6 +46,7 @@
   
   <h1 id="pageTitle">Simulador de Crédito</h1>
 
+  <p id="errorCarga" role="alert" style="color:darkred;"></p>
   <!-- Selects principales -->
   <label>Desarrollo:</label>
   <select id="desarrollo"></select>
@@ -66,16 +67,23 @@
   <select id="plazo" disabled></select>
 
   <div id="zonaAnualidades" style="display:none; margin-top: 1em;">
+    <label for="usarAnualidades">¿Usar anualidades?</label>
+    <select id="usarAnualidades" disabled>
+      <option value="no">No</option>
+      <option value="si">Sí</option>
+    </select>
+    <div id="cantidadAnualidadesGroup" style="display:none;">
     <label for="anualidades">N° de Anualidades:</label>
     <select id="anualidades" disabled>
-      <option value="0">0</option>
+      <option value="">Seleccione cantidad</option>
     </select>
+    </div>
   
     <div id="anualidadMontoGroup" style="display:none; margin-top:0.5em;">
       <label>Monto por Anualidad:</label>
       <div class="input-group">
         <button type="button" id="btnAnualidadMenos">−</button>
-        <input type="text" id="anualidadMonto" pattern="[0-9]*" inputmode="numeric" value="40000" />
+        <input type="text" id="anualidadMonto" pattern="[0-9]*" inputmode="numeric" value="0" />
         <button type="button" id="btnAnualidadMas">+</button>
       </div>
     </div>
@@ -109,6 +117,7 @@
 
 <!-- Resultados -->
 <h2>Cotización</h2>
+<p id="mensajeCalculo" role="status" style="color:darkred;"></p>
 <div>Enganche: <span id="resEnganche" class="res-num">$0.00</span></div>
 <div>Mensualidad: <span id="mensualidad"><span class="res-num">$0.00</span></span></div>
 <div id="anualidadesResultadoDiv" style="display: none;">

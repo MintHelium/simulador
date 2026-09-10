@@ -30,9 +30,35 @@ const btnAnualidadMas = document.getElementById("btnAnualidadMas");
 const btnAnualidadMenos = document.getElementById("btnAnualidadMenos");
 const anualidadMontoGroup = document.getElementById("anualidadMontoGroup");
 
-let anualidadMontoEditadoPorUsuario = false;
-let plazoAnualidadPrevio = null;
-let anualidadesEditadoPorUsuario = false;
+const usarAnualidadesSelect = document.getElementById("usarAnualidades");
+const cantidadAnualidadesGroup = document.getElementById("cantidadAnualidadesGroup");
+const mensajeCalculo = document.getElementById("mensajeCalculo");
+
+function leerImporte(valor) {
+  const texto = String(valor).trim();
+  if (!/^(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d{1,2})?$/.test(texto)) return 0;
+  const numero = Number(texto.replace(/,/g, ""));
+  return Number.isFinite(numero) ? numero : 0;
+}
+
+function limpiarResultados() {
+  for (const id of ["resEnganche", "mensualidad", "valorTotal", "ahorro",
+                    "comisionCobrar", "comisionAhorro", "comisionTotal"]) {
+    document.getElementById(id).textContent = "$0.00";
+  }
+  anualidadesResumenSpan.textContent = "";
+  anualidadesResumenSpan.parentElement.style.display = "none";
+  mensajeCalculo.textContent = "";
+}
+
+function resetAnualidades() {
+  usarAnualidadesSelect.value = "no";
+  anualidadesSelect.innerHTML = '<option value="">Seleccione cantidad</option>';
+  anualidadMontoInput.value = "0";
+  cantidadAnualidadesGroup.style.display = "none";
+  anualidadMontoGroup.style.display = "none";
+  zonaAnualidadesDiv.style.display = "none";
+}
 
 // ==========================
 // ANUALIDADES (NUEVA LÓGICA)
@@ -73,6 +99,9 @@ async function cargarDatos() {
     llenarDesarrollos();
   } catch (err) {
     console.error("Error al cargar JSON:", err);
+    document.getElementById("errorCarga").textContent =
+      "No se pudo cargar el catálogo de lotes. Revisa tu conexión y recarga la página para intentar de nuevo.";
+    desarrolloSelect.disabled = true;
   }
 }
 
@@ -95,27 +124,12 @@ function resetCamposDesde(nivel) {
     sel.innerHTML = `<option value=''>Seleccione un ${niveles[i]}</option>`;
     sel.disabled = true;
   }
-  // Limpiar inputs y spans
   engancheInput.value = "";
   mensualidadInput.value = "";
-  resEngancheSpan.textContent = "$0.00";
-  mensualidadSpan.textContent = "$0.00";
-  valorTotalSpan.textContent = "$0.00";
-  ahorroSpan.textContent = "$0.00";
-
-  // 🔁 Reset anualidades cuando cambias cualquier campo ANTES de "plazo"
-  if (nivel !== "plazo") {
-    plazoAnualidadPrevio = null;
-    anualidadMontoEditadoPorUsuario = false;
-    anualidadesEditadoPorUsuario = false;
-
-    // Para que al elegir plazo de nuevo arranque en el máximo (aunque el HTML traiga 40000)
-    anualidadMontoInput.value = "0";
-
-    // Reset UI de anualidades
-    anualidadesSelect.value = "0";
-    anualidadMontoGroup.style.display = "none";
-  }
+  limpiarResultados();
+  resetAnualidades();
+  engancheInput.disabled = true;
+  mensualidadInput.disabled = true;
 
   if (nivel === "desarrollo" || nivel === "etapa") {
     infoEtapaDiv.textContent = "";
@@ -171,7 +185,7 @@ function llenarTipos() {
 }
 
 function llenarFormasDePago() {
-  resetCamposDesde("pago");
+  resetCamposDesde("tipo");
   const desarrollo = desarrolloSelect.value;
   const etapa = etapaSelect.value;
   const tamano = tamanoSelect.value;
@@ -209,7 +223,7 @@ function llenarPlazos() {
     plazoSelect.disabled = false;
     // ✅ MOSTRAR anualidades en financiamiento
     zonaAnualidadesDiv.style.display = "block";
-    anualidadesSelect.disabled = false;
+    usarAnualidadesSelect.disabled = true;
   } else {
     zonaAnualidadesDiv.style.display = "none";
  
@@ -230,7 +244,7 @@ function habilitarInputs() {
   engancheInput.disabled = true;
   mensualidadInput.disabled = true;
 
-  if (formaPago === "Financiamiento") {
+  if (formaPago === "Financiamiento" && plazoSelect.value) {
     if (modoCalculo === "enganche") {
       engancheInput.disabled = false;
     } else {
@@ -243,58 +257,44 @@ function habilitarInputs() {
    4) CÁLCULO DE MENSUALIDADES (AL PERDER FOCO)
 =================================================== */
 function calcularPlanMensualidades(precio, enganche, plazo) {
-  const financiado = precio - enganche;
-
-  if (financiado <= 0 || plazo < 1) {
-    return {
-      mensualBase: 0,
-      ultima: 0,
-      pagosNormales: 0,
-      total: precio
-    };
+  const saldo = Math.round((precio - enganche) * 100);
+  if (!Number.isFinite(saldo) || !Number.isInteger(plazo) || plazo < 1 || saldo < 200000 * plazo) {
+    return null;
   }
+  // Mantener el redondeo comercial a $50, salvo división exacta en centavos.
+  let base = saldo % plazo === 0 ? saldo / plazo : Math.ceil(saldo / plazo / 5000) * 5000;
+  // Si redondear hacia arriba consume el último pago, usar el múltiplo inferior.
+  if (saldo - base * (plazo - 1) <= 0) base = Math.floor(saldo / plazo / 5000) * 5000;
+  const ultima = saldo - base * (plazo - 1);
+  if (ultima <= 0) return null;
+  return { mensualBase: base / 100, ultima: saldo % plazo === 0 ? 0 : ultima / 100,
+    pagosNormales: saldo % plazo === 0 ? plazo : plazo - 1, total: precio };
+}
 
-  // 💡 Si se divide exacto entre el plazo, no hay sobrante
-  if (financiado % plazo === 0) {
-    const mensualBase = financiado / plazo;
-    return {
-      mensualBase,
-      ultima: 0,
-      pagosNormales: plazo,
-      total: precio
-    };
+function limitarFinanciamiento({ precio, precioContado, minimo, plazo, enganche, mensualidad, cantidad, monto, modo }) {
+  const disponible = precio - 2000 * plazo;
+  const maxEnganche = Math.min(precioContado, disponible);
+  if (![precio, precioContado, minimo, plazo, disponible].every(Number.isFinite) ||
+      plazo < 1 || minimo < 0 || maxEnganche < minimo) return null;
+  enganche = Math.min(maxEnganche, Math.max(minimo, enganche));
+  // En modo mensualidad se reserva primero el enganche mínimo; en modo enganche, el elegido.
+  const reserva = modo === "mensualidad" ? minimo : enganche;
+  const maxMonto = cantidad > 0 ? Math.max(0, Math.min(getMontoMaxPorAnualidad(plazo),
+    Math.floor((disponible - reserva) / cantidad / 1000) * 1000)) : 0;
+  monto = Math.min(maxMonto, Math.max(0, Math.round(monto / 1000) * 1000));
+  const totalAnualidades = cantidad * monto;
+  if (modo === "mensualidad") {
+    enganche = Math.min(maxEnganche, Math.max(minimo,
+      precio - totalAnualidades - Math.max(2000, mensualidad) * plazo));
   }
-
-  // ✅ Nuevo redondeo hacia el siguiente múltiplo de $50
-  let mensualBase = Math.ceil(financiado / plazo / 50) * 50;
-
-  // 🔒 Protección mínima
-  if (mensualBase < 50) mensualBase = 50;
-
-  const pagosNormales = plazo - 1;
-  let totalPagado = mensualBase * pagosNormales;
-  let leftover = financiado - totalPagado;
-
-  // ⚠️ Protección: si leftover > mensualidad, todos iguales
-  if (leftover > mensualBase) {
-    mensualBase = Math.round(financiado / plazo / 50) * 50;
-    return {
-      mensualBase,
-      ultima: 0,
-      pagosNormales: plazo,
-      total: precio
-    };
-  }
-
-  return {
-    mensualBase,
-    ultima: leftover,
-    pagosNormales,
-    total: precio
-  };
+  enganche = Math.round(Math.min(enganche, disponible - totalAnualidades) * 100) / 100;
+  const plan = calcularPlanMensualidades(precio, enganche + totalAnualidades, plazo);
+  return plan ? { enganche, monto, maxMonto, plan } : null;
 }
 
 function actualizarResultados() {
+  limpiarResultados();
+  habilitarInputs();
   const desarrollo = desarrolloSelect.value;
   const etapa = etapaSelect.value;
   const tamano = tamanoSelect.value;
@@ -323,6 +323,7 @@ function actualizarResultados() {
   }
 
   if (formaPago === "Contado") {
+    resetAnualidades();
     const enganche = precioContado;
 
     engancheInput.value = `${precioContado}`;
@@ -347,108 +348,45 @@ function actualizarResultados() {
     return;
   }
 
-  // ✅ Financiamiento
-  let maxAnualidades = getMaxAnualidadesPorPlazo(plazoNum);
-
-  const selectedAnualidad = anualidadesSelect.value;
-
-  anualidadesSelect.innerHTML = "";
-  for (let i = 0; i <= maxAnualidades; i++) {
+  const plan = formaPago === "Financiamiento" ? dataLote.Financiamiento?.[plazoNum] : null;
+  if (!plan) return;
+  const maxAnualidades = getMaxAnualidadesPorPlazo(plazoNum);
+  zonaAnualidadesDiv.style.display = "block";
+  usarAnualidadesSelect.disabled = maxAnualidades === 0;
+  if (!maxAnualidades) usarAnualidadesSelect.value = "no";
+  const usar = usarAnualidadesSelect.value === "si";
+  const seleccion = anualidadesSelect.value;
+  anualidadesSelect.innerHTML = '<option value="">Seleccione cantidad</option>';
+  for (let i = 1; i <= maxAnualidades; i++) {
     anualidadesSelect.innerHTML += `<option value="${i}">${i}</option>`;
   }
-  anualidadesSelect.disabled = false;
-
-  // Si la opción seleccionada sigue siendo válida, la volvemos a aplicar.
-  // Si no aplica (ej. 4 -> max 3), clamp al máximo, NO a 0.
-  // Si el usuario no lo ha tocado y está en 0 / vacío, default al máximo.
-  const sel = parseInt(selectedAnualidad);
-
-  if (maxAnualidades === 0) {
-    anualidadesSelect.value = "0";
-  } else if (!anualidadesEditadoPorUsuario && (!isFinite(sel) || sel === 0)) {
-    anualidadesSelect.value = `${maxAnualidades}`;
-  } else if (isFinite(sel) && sel <= maxAnualidades) {
-    anualidadesSelect.value = selectedAnualidad;
-  } else {
-    anualidadesSelect.value = `${maxAnualidades}`;
-  }
-
-  anualidadMontoGroup.style.display = (parseInt(anualidadesSelect.value) > 0) ? "block" : "none";
-  
-  // Nuevo tope dinámico por anualidad según plazo (mantiene pool ~160k)
-  const montoMaxPorAnualidad = getMontoMaxPorAnualidad(plazoNum);
-
-  // Detectar cambio de plazo para decidir si auto-maximizamos o respetamos input
-  const esPrimeraVezPlazo = (plazoAnualidadPrevio === null);
-  const plazoCambio = (!esPrimeraVezPlazo && plazoAnualidadPrevio !== plazoNum);
-
-  let montoActual = parseFloat(anualidadMontoInput.value);
-  if (!isFinite(montoActual) || montoActual < 0) montoActual = 0;
-
-  if (esPrimeraVezPlazo) {
-    // Solo inicializamos el "previo" sin tocar el flag ni el monto del usuario
-    plazoAnualidadPrevio = plazoNum;
-
-    // Primera vez: si el usuario no ha editado, default al máximo del plazo actual
-    if (!anualidadMontoEditadoPorUsuario) {
-      montoActual = montoMaxPorAnualidad;
-    } else if (montoActual > montoMaxPorAnualidad) {
-      montoActual = montoMaxPorAnualidad;
-    }
-  } else if (plazoCambio) {
-    if (!anualidadMontoEditadoPorUsuario) {
-      // Si el usuario no lo tocó, default al máximo del plazo
-      montoActual = montoMaxPorAnualidad;
-
-      // Como fue automático, seguimos considerando "no editado"
-      anualidadMontoEditadoPorUsuario = false;
-    } else {
-      // Si el usuario sí lo tocó, respetar y solo clamping al máximo nuevo
-      if (montoActual > montoMaxPorAnualidad) montoActual = montoMaxPorAnualidad;
-
-      // IMPORTANTE: NO apagar el flag aquí para respetar cambios subsecuentes
-    }
-
-    // Registrar el plazo actual
-    plazoAnualidadPrevio = plazoNum;
-  } else {
-    // Mismo plazo: solo clamp por seguridad
-    if (montoActual > montoMaxPorAnualidad) montoActual = montoMaxPorAnualidad;
-  }
-
-  // Redondeo a múltiplos de 1000 para mantener tu UX de +1000/-1000
-  montoActual = Math.round(montoActual / 1000) * 1000;
-
-  anualidadMontoInput.value = `${montoActual}`;
-   
-  const plan = dataLote.Financiamiento[plazoNum];
-  const numAnualidades = parseInt(anualidadesSelect.value) || 0;
-  const montoAnualidad = parseFloat(anualidadMontoInput.value) || 0;
-  const totalAnualidades = numAnualidades * montoAnualidad;
-  if (!plan) return;
-
+  anualidadesSelect.value = usar && Number(seleccion) <= maxAnualidades ? seleccion : "";
+  anualidadesSelect.disabled = !usar;
+  cantidadAnualidadesGroup.style.display = usar ? "block" : "none";
+  const numAnualidades = usar ? Number(anualidadesSelect.value) : 0;
+  anualidadMontoGroup.style.display = numAnualidades > 0 ? "block" : "none";
   const precio = plan.precio;
-  // Mostrar Ahorro en financiamiento (vs plan más largo)
-  let ahorro = precioPlanLargo - precio;
-  if (ahorro < 0 || !isFinite(ahorro)) ahorro = 0;
-  ahorroSpan.textContent = `$${ahorro.toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
-  const engancheMin = plan.enganche;
-
-  let enganche = parseFloat(engancheInput.value) || 0;
-  let mensualUser = parseFloat(mensualidadInput.value) || 0;
-
-  // Clamp enganche
-  if (enganche < engancheMin) enganche = engancheMin;
-  if (enganche > precioContado) enganche = precioContado;
-
-  if (modoCalculo === "mensualidad") {
-    enganche = precio - totalAnualidades - (mensualUser * plazoNum);
-    if (enganche < engancheMin) enganche = engancheMin;
-    if (enganche > precioContado) enganche = precioContado;
+  const resultado = limitarFinanciamiento({ precio, precioContado, minimo: plan.enganche,
+    plazo: plazoNum, enganche: leerImporte(engancheInput.value),
+    mensualidad: mensualidadInput.value ? leerImporte(mensualidadInput.value) : precio / plazoNum,
+    cantidad: numAnualidades, monto: leerImporte(anualidadMontoInput.value), modo: modoCalculo });
+  if (!resultado) {
+    engancheInput.value = "";
+    mensualidadInput.value = "";
+    mensajeCalculo.textContent = "Este plan no permite conservar la mensualidad mínima de $2,000 con el enganche requerido. Selecciona otro plazo o Contado.";
+    return;
   }
-  
-  const planFinal = calcularPlanMensualidades(precio, enganche + totalAnualidades, plazoNum);
-  
+  const { enganche, monto: montoAnualidad, plan: planFinal } = resultado;
+  anualidadMontoInput.value = `${montoAnualidad}`;
+  if (usar && !numAnualidades) {
+    mensajeCalculo.textContent = "Selecciona la cantidad de anualidades; la cotización aún no incluye anualidades.";
+  } else if (numAnualidades && !montoAnualidad) {
+    mensajeCalculo.textContent = resultado.maxMonto > 0
+      ? "Indica el monto de las anualidades; la cotización aún no incluye anualidades."
+      : "No hay saldo disponible para anualidades con este enganche y la mensualidad mínima de $2,000.";
+  }
+  ahorroSpan.textContent = `$${Math.max(0, precioPlanLargo - precio).toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
+
   engancheInput.value = `${enganche}`;
   mensualidadInput.value = `${planFinal.mensualBase}`;
 
@@ -458,20 +396,11 @@ function actualizarResultados() {
   const leftover = planFinal.ultima;
   const pagosN = planFinal.pagosNormales;
 
-  if (pagosN < 1) {
-    mensualidadSpan.innerHTML = `<span class="res-num">$${(precio - enganche).toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>`;
-  } else if (Math.round(leftover) === 0 || Math.round(leftover) === Math.round(base)) {
-    mensualidadSpan.innerHTML =
-      `<span class="res-num">${plazoNum}</span> <span class="text-verde">pagos de</span> <span class="res-num">$${base.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>`;
-  } else if (leftover > base) {
-    const uniforme = Math.round(precio / plazoNum);
-    mensualidadSpan.innerHTML =
-      `<span class="res-num">${plazoNum}</span> <span class="text-verde">pagos de</span> <span class="res-num">$${uniforme.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>`;
+  if (leftover === 0) {
+    mensualidadSpan.innerHTML = `<span class="res-num">${pagosN}</span> pagos de <span class="res-num">$${base.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>`;
   } else {
-    mensualidadSpan.innerHTML =
-      `<span class="res-num">${pagosN}</span> <span class="text-verde">pagos de</span> <span class="res-num">$${base.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>` +
-      `<span class="text-verde"> + </span><span class="res-num">1</span> <span class="text-verde">pago de</span> <span class="res-num">$${leftover.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>`;
-  }  
+    mensualidadSpan.innerHTML = `<span class="res-num">${pagosN}</span> pagos de <span class="res-num">$${base.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span> + 1 pago de <span class="res-num">$${leftover.toLocaleString("es-MX", { minimumFractionDigits: 2 })}</span>`;
+  }
 
   valorTotalSpan.textContent = `$${planFinal.total.toLocaleString("es-MX",{minimumFractionDigits:2})}`;
 
@@ -552,10 +481,18 @@ function ajustarComision(comisionReal) {
     ahorroFinal = ahorro1000MenosOtro1000;
   }
 
+  return aplicarAhorroAdicional({ cobrar: cobrarFinal, ahorro: ahorroFinal, total: comisionReal });
+}
+
+function aplicarAhorroAdicional({ cobrar, ahorro, total }) {
+  if (ahorro > 0 && ahorro < 750 && cobrar >= 1000) {
+    cobrar -= 1000;
+    ahorro += 1000;
+  }
   return {
-    cobrar: cobrarFinal,
-    ahorro: ahorroFinal,
-    total: comisionReal,
+    cobrar,
+    ahorro,
+    total,
   };
 }
 
@@ -571,7 +508,15 @@ document.addEventListener("DOMContentLoaded", () => {
   tamanoSelect.addEventListener("change", llenarTipos);
   tipoSelect.addEventListener("change", llenarFormasDePago);
   pagoSelect.addEventListener("change", llenarPlazos);
-  plazoSelect.addEventListener("change", actualizarResultados);
+  plazoSelect.addEventListener("change", () => {
+    resetCamposDesde("plazo");
+    actualizarResultados();
+  });
+  usarAnualidadesSelect.addEventListener("change", () => {
+    anualidadesSelect.value = "";
+    anualidadMontoInput.value = "0";
+    actualizarResultados();
+  });
 
   // Modo de cálculo
   document.querySelectorAll('input[name="modoCalculo"]').forEach(radio => {
@@ -584,34 +529,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Flechas manuales => Enganche => ±5000
   engancheInput.addEventListener("keydown", e => {
-    if (modoCalculo !== "enganche") return;
+    if (modoCalculo !== "enganche" || engancheInput.disabled) return;
     if (e.key === "ArrowUp") {
       e.preventDefault();
-      let val = parseFloat(engancheInput.value) || 0;
+      let val = leerImporte(engancheInput.value) || 0;
       engancheInput.value = val + 5000;
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
-      let val = parseFloat(engancheInput.value) || 0;
+      let val = leerImporte(engancheInput.value) || 0;
       val -= 5000;
       if (val < 0) val = 0;
       engancheInput.value = val;
     }
+    if (e.key === "ArrowUp" || e.key === "ArrowDown") actualizarResultados();
   });
 
   // Flechas manuales => Mensualidad => ±500
   mensualidadInput.addEventListener("keydown", e => {
-    if (modoCalculo !== "mensualidad") return;
+    if (modoCalculo !== "mensualidad" || mensualidadInput.disabled) return;
     if (e.key === "ArrowUp") {
       e.preventDefault();
-      let val = parseFloat(mensualidadInput.value) || 0;
+      let val = leerImporte(mensualidadInput.value) || 0;
       mensualidadInput.value = val + 500;
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
-      let val = parseFloat(mensualidadInput.value) || 0;
+      let val = leerImporte(mensualidadInput.value) || 0;
       val -= 500;
       if (val < 0) val = 0;
       mensualidadInput.value = val;
     }
+    if (e.key === "ArrowUp" || e.key === "ArrowDown") actualizarResultados();
   });
 
   // Blur => Recalcular
@@ -628,30 +575,30 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.getElementById("btnEngancheMas").addEventListener("click", () => {
-    if (modoCalculo !== "enganche") return;
-    let val = parseFloat(engancheInput.value) || 0;
+    if (modoCalculo !== "enganche" || engancheInput.disabled) return;
+    let val = leerImporte(engancheInput.value) || 0;
     engancheInput.value = val + 5000;
     actualizarResultados();
   });
   
   document.getElementById("btnEngancheMenos").addEventListener("click", () => {
-    if (modoCalculo !== "enganche") return;
-    let val = parseFloat(engancheInput.value) || 0;
+    if (modoCalculo !== "enganche" || engancheInput.disabled) return;
+    let val = leerImporte(engancheInput.value) || 0;
     val = Math.max(0, val - 5000);
     engancheInput.value = val;
     actualizarResultados();
   });
   
   document.getElementById("btnMensualidadMas").addEventListener("click", () => {
-    if (modoCalculo !== "mensualidad") return;
-    let val = parseFloat(mensualidadInput.value) || 0;
+    if (modoCalculo !== "mensualidad" || mensualidadInput.disabled) return;
+    let val = leerImporte(mensualidadInput.value) || 0;
     mensualidadInput.value = val + 500;
     actualizarResultados();
   });
   
   document.getElementById("btnMensualidadMenos").addEventListener("click", () => {
-    if (modoCalculo !== "mensualidad") return;
-    let val = parseFloat(mensualidadInput.value) || 0;
+    if (modoCalculo !== "mensualidad" || mensualidadInput.disabled) return;
+    let val = leerImporte(mensualidadInput.value) || 0;
     val = Math.max(0, val - 500);
     mensualidadInput.value = val;
     actualizarResultados();
@@ -660,7 +607,6 @@ document.addEventListener("DOMContentLoaded", () => {
   anualidadesSelect.addEventListener("change", () => {
     const n = parseInt(anualidadesSelect.value);
     anualidadMontoGroup.style.display = n > 0 ? "block" : "none";
-    anualidadesEditadoPorUsuario = true;
     actualizarResultados();
   });
   
@@ -668,25 +614,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const plazoNum = parseInt(plazoSelect.value) || 0;
     const montoMax = getMontoMaxPorAnualidad(plazoNum);
 
-    let val = parseFloat(anualidadMontoInput.value) || 0;
+    let val = leerImporte(anualidadMontoInput.value) || 0;
     val = val + 1000;
 
     if (val > montoMax) val = montoMax;
 
     anualidadMontoInput.value = val;
-    anualidadMontoEditadoPorUsuario = true; 
     actualizarResultados();
   });
 
-  anualidadMontoInput.addEventListener("input", () => {
-    anualidadMontoEditadoPorUsuario = true;
-  });
   
   btnAnualidadMenos.addEventListener("click", () => {
-    let val = parseFloat(anualidadMontoInput.value) || 0;
+    let val = leerImporte(anualidadMontoInput.value) || 0;
     val = Math.max(0, val - 1000);
     anualidadMontoInput.value = val;
-    anualidadMontoEditadoPorUsuario = true; 
     actualizarResultados();
   });
   
