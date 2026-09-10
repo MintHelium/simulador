@@ -33,6 +33,19 @@
             "45": { "precio": 770000, "enganche": 100000 }
           }
         }
+      },
+      "2250m2": {
+        "Un solo frente": {
+          "Contado": 930000,
+          "Financiamiento": {
+            "6": { "precio": 945000, "enganche": 420000 },
+            "12": { "precio": 967500, "enganche": 360000 },
+            "18": { "precio": 997500, "enganche": 315000 },
+            "25": { "precio": 1035000, "enganche": 210000 },
+            "35": { "precio": 1087500, "enganche": 180000 },
+            "45": { "precio": 1155000, "enganche": 150000 }
+          }
+        }
       }
     },
     "Etapa 3": {
@@ -70,6 +83,19 @@
             "25": { "precio": 690000, "enganche": 310000 },
             "35": { "precio": 725000, "enganche": 310000 },
             "45": { "precio": 770000, "enganche": 310000 }
+          }
+        }
+      },
+      "2250m2": {
+        "Un solo frente": {
+          "Contado": 930000,
+          "Financiamiento": {
+            "6": { "precio": 945000, "enganche": 405000 },
+            "12": { "precio": 967500, "enganche": 360000 },
+            "18": { "precio": 997500, "enganche": 315000 },
+            "25": { "precio": 1035000, "enganche": 210000 },
+            "35": { "precio": 1087500, "enganche": 180000 },
+            "45": { "precio": 1155000, "enganche": 150000 }
           }
         }
       }
@@ -120,6 +146,19 @@
             "25": { "precio": 990000, "enganche": 442500 },
             "35": { "precio": 1042500, "enganche": 442500 },
             "45": { "precio": 1110000, "enganche": 442500 }
+          }
+        }
+      },
+      "2250m2": {
+        "Un solo frente": {
+          "Contado": 885000,
+          "Financiamiento": {
+            "6": { "precio": 900000, "enganche": 375000 },
+            "12": { "precio": 922500, "enganche": 330000 },
+            "18": { "precio": 952500, "enganche": 255000 },
+            "25": { "precio": 990000, "enganche": 210000 },
+            "35": { "precio": 1042500, "enganche": 180000 },
+            "45": { "precio": 1110000, "enganche": 150000 }
           }
         }
       }
@@ -179,12 +218,12 @@
         "Un solo frente": {
           "Contado": 990000,
           "Financiamiento": {
-            "6": { "precio": 1005000, "enganche": 450000 },
-            "12": { "precio": 1027500, "enganche": 420000 },
-            "18": { "precio": 1057500, "enganche": 390000 },
-            "25": { "precio": 1095000, "enganche": 240000 },
-            "35": { "precio": 1140000, "enganche": 210000 },
-            "45": { "precio": 1200000, "enganche": 180000 }
+            "6": { "precio": 1005000, "enganche": 435000 },
+            "12": { "precio": 1027500, "enganche": 405000 },
+            "18": { "precio": 1057500, "enganche": 375000 },
+            "25": { "precio": 1095000, "enganche": 225000 },
+            "35": { "precio": 1140000, "enganche": 195000 },
+            "45": { "precio": 1200000, "enganche": 165000 }
           }
         },
         "LF29 Esquina 2250m2": {
@@ -242,12 +281,12 @@
         "Un solo frente": {
           "Contado": 930000,
           "Financiamiento": {
-            "6": { "precio": 945000, "enganche": 435000 },
-            "12": { "precio": 967500, "enganche": 375000 },
-            "18": { "precio": 997500, "enganche": 330000 },
-            "25": { "precio": 1035000, "enganche": 240000 },
-            "35": { "precio": 1087500, "enganche": 210000 },
-            "45": { "precio": 1155000, "enganche": 180000 }
+            "6": { "precio": 945000, "enganche": 405000 },
+            "12": { "precio": 967500, "enganche": 360000 },
+            "18": { "precio": 997500, "enganche": 315000 },
+            "25": { "precio": 1035000, "enganche": 210000 },
+            "35": { "precio": 1087500, "enganche": 180000 },
+            "45": { "precio": 1155000, "enganche": 150000 }
           }
         }
       }
@@ -294,12 +333,12 @@
         "Un solo frente": {
           "Contado": 930000,
           "Financiamiento": {
-            "6": { "precio": 945000, "enganche": 435000 },
-            "12": { "precio": 967500, "enganche": 375000 },
-            "18": { "precio": 997500, "enganche": 330000 },
-            "25": { "precio": 1035000, "enganche": 240000 },
-            "35": { "precio": 1087500, "enganche": 210000 },
-            "45": { "precio": 1155000, "enganche": 180000 }
+            "6": { "precio": 945000, "enganche": 405000 },
+            "12": { "precio": 967500, "enganche": 360000 },
+            "18": { "precio": 997500, "enganche": 315000 },
+            "25": { "precio": 1035000, "enganche": 210000 },
+            "35": { "precio": 1087500, "enganche": 180000 },
+            "45": { "precio": 1155000, "enganche": 150000 }
           }
         }
       }
@@ -357,12 +396,12 @@
         "Un solo frente": {
           "Contado": 930000,
           "Financiamiento": {
-            "6": { "precio": 945000, "enganche": 435000 },
-            "12": { "precio": 967500, "enganche": 375500 },
-            "18": { "precio": 997500, "enganche": 330000 },
-            "25": { "precio": 1035000, "enganche": 240000 },
-            "35": { "precio": 1087500, "enganche": 210000 },
-            "45": { "precio": 1155000, "enganche": 180000 }
+            "6": { "precio": 945000, "enganche": 405000 },
+            "12": { "precio": 967500, "enganche": 360000 },
+            "18": { "precio": 997500, "enganche": 315000 },
+            "25": { "precio": 1035000, "enganche": 210000 },
+            "35": { "precio": 1087500, "enganche": 180000 },
+            "45": { "precio": 1155000, "enganche": 150000 }
           }
         },
         "LF116 Un solo vecino": {

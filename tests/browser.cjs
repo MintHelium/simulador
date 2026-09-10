@@ -1,7 +1,8 @@
 // Optional integration check: requires Playwright and locally installed Chrome.
-// Start a local server on port 8765 before running this file.
+// Start a local server on port 8765, or set SIMULADOR_URL.
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
+const baseUrl=process.env.SIMULADOR_URL || 'http://127.0.0.1:8765';
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true});
  try {
@@ -9,7 +10,7 @@ const assert=require('node:assert/strict');
  const page=await context.newPage();const errors=[];
  page.on('pageerror',e=>errors.push(e.message));
  page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});
- await page.goto('http://127.0.0.1:8765');
+ await page.goto(baseUrl);
  const select=async(id,value)=>page.selectOption('#'+id,value);
  const value=id=>page.inputValue('#'+id);
  const text=id=>page.textContent('#'+id);
@@ -61,6 +62,23 @@ const assert=require('node:assert/strict');
  await page.check('#modoEnganche');await fill('enganche','55,000');
  await select('usarAnualidades','si');await select('anualidades','4');await fill('anualidadMonto','40,000');
  await page.screenshot({path:'/tmp/simulador-revision.png',fullPage:true});
+ // All seven standard 2250 products render their catalog prices and approved deposits.
+ const catalog=require('../lotes.json');
+ for(const [dev,stages] of Object.entries(catalog)) for(const [stage,sizes] of Object.entries(stages)) {
+  await select('desarrollo',dev);await select('etapa',stage);
+  if(dev==='Cañón de Gomas' && stage==='Etapa 1') {
+   assert.equal(await page.locator('#tamano option[value="2250m2"]').count(),0);continue;
+  }
+  await select('tamano','2250m2');await select('tipo','Un solo frente');
+  const lot=sizes['2250m2']['Un solo frente'];
+  await select('pago','Contado');
+  assert.equal(await text('valorTotal'),'$'+lot.Contado.toLocaleString('es-MX',{minimumFractionDigits:2}));
+  await select('pago','Financiamiento');
+  for(const [term,plan] of Object.entries(lot.Financiamiento)) {
+   await select('plazo',term);assert.equal(Number(await value('enganche')),plan.enganche);
+   assert.equal(await text('valorTotal'),'$'+plan.precio.toLocaleString('es-MX',{minimumFractionDigits:2}));
+  }
+ }
  // Exercise visible impossible-plan handling with synthetic catalog data.
  await page.evaluate(()=>{lotesData['Cañón de Gomas']['Etapa 3']['750m2']['Un solo frente'].Financiamiento['6'].precio=10000});
  await choose();await select('pago','Financiamiento');await select('plazo','6');
@@ -69,7 +87,7 @@ const assert=require('node:assert/strict');
  await context.close();
  const failure=await browser.newContext({serviceWorkers:'block'});const bad=await failure.newPage();
  await bad.route('**/lotes.json',route=>route.fulfill({status:500,body:'unavailable'}));
- await bad.goto('http://127.0.0.1:8765');await bad.waitForFunction(()=>document.getElementById('errorCarga').textContent.includes('No se pudo cargar'));
+ await bad.goto(baseUrl);await bad.waitForFunction(()=>document.getElementById('errorCarga').textContent.includes('No se pudo cargar'));
  assert.ok(await bad.locator('#desarrollo').isDisabled());
  await failure.close();console.log('Browser DOM scenarios passed; no unexpected console/page errors.');
  }finally{await browser.close()}

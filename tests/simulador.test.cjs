@@ -72,11 +72,12 @@ test('authorized price matrices and neighbor rules only: no other leaf changed',
   const reference=data['Cañón de Gomas']['Etapa 3'][size]?.[type];
   if(reference) types[type]=reference;
  }
- for(const stage of ['Etapa 2','Etapa 3','Etapa 4']) {
-  const sizes=expected['Campestre Las Flores'][stage];
-  const base=sizes['750m2']['Un solo frente'];const lot=sizes['2250m2']['Un solo frente'];
-  lot.Contado=base.Contado*3;
-  for(const [term,plan] of Object.entries(lot.Financiamiento)) plan.precio=base.Financiamiento[term].precio*3;
+ for(const [dev,stages] of Object.entries(expected)) for(const [stage,sizes] of Object.entries(stages)) {
+  if(dev==='Cañón de Gomas' && stage==='Etapa 1') continue;
+  const base=sizes['750m2']['Un solo frente'];
+  sizes['2250m2'] ||= {};
+  sizes['2250m2']['Un solo frente']={Contado:base.Contado*3,Financiamiento:Object.fromEntries(
+   Object.entries(base.Financiamiento).map(([term,plan])=>[term,{precio:plan.precio*3,enganche:plan.enganche*3-15000}]))};
  }
  for(const [size,type] of [['1500m2','Un solo vecino'],['2250m2','LF116 Un solo vecino']]) {
   const sizes=expected['Campestre Las Flores']['Etapa 4'];const base=sizes[size]['Un solo frente'];
@@ -103,18 +104,33 @@ test('catalog failure visible for HTTP and malformed JSON',async()=>{
  }
 });
 
-test('existing standard 2250: triple prices, matching terms, deposits untouched pending approval',()=>{
- const prior=JSON.parse(execFileSync('git',['show','02f2c83:lotes.json'],{cwd:root}));
- for(const [stage,sizes] of Object.entries(data['Campestre Las Flores'])) {
-  const base=sizes['750m2']['Un solo frente'];const lot=sizes['2250m2']['Un solo frente'];
+test('seven standard 2250 options: triple prices, matching terms and approved deposits',()=>{
+ const targets=[['Cañón de Gomas','Etapa 2',[420000,360000,315000,210000,180000,150000]],
+  ['Cañón de Gomas','Etapa 3',[405000,360000,315000,210000,180000,150000]],
+  ['Cañón de Gomas','Etapa 4',[375000,330000,255000,210000,180000,150000]],
+  ['Campestre Las Flores','Etapa 1',[435000,405000,375000,225000,195000,165000]],
+  ...['Etapa 2','Etapa 3','Etapa 4'].map(stage=>['Campestre Las Flores',stage,[405000,360000,315000,210000,180000,150000]])];
+ for(const [dev,stage,deposits] of targets) {
+  const sizes=data[dev][stage];const base=sizes['750m2']['Un solo frente'];
+  const lot=sizes['2250m2']?.['Un solo frente'];assert.ok(lot,`${dev} ${stage}`);
   assert.equal(lot.Contado,3*base.Contado);
   assert.deepEqual(Object.keys(lot.Financiamiento),Object.keys(base.Financiamiento));
   for(const [term,plan] of Object.entries(lot.Financiamiento)) {
    assert.equal(plan.precio,3*base.Financiamiento[term].precio);
-   assert.equal(plan.enganche,prior['Campestre Las Flores'][stage]['2250m2']['Un solo frente'].Financiamiento[term].enganche);
+   assert.equal(plan.enganche,3*base.Financiamiento[term].enganche-15000);
   }
+  assert.deepEqual(Object.values(lot.Financiamiento).map(p=>p.enganche),deposits);
  }
- assert.deepEqual(data['Cañón de Gomas'],prior['Cañón de Gomas']);
+});
+test('CDG1 excluded and every existing special lot preserved',()=>{
+ const prior=JSON.parse(execFileSync('git',['show','6be0e0d:lotes.json'],{cwd:root}));
+ assert.equal(data['Cañón de Gomas']['Etapa 1']['2250m2'],undefined);
+ assert.deepEqual(data['Cañón de Gomas']['Etapa 1'],prior['Cañón de Gomas']['Etapa 1']);
+ for(const [dev,stages] of Object.entries(prior)) for(const [stage,sizes] of Object.entries(stages))
+  for(const [size,types] of Object.entries(sizes)) for(const [type,lot] of Object.entries(types)) {
+   if(size==='2250m2' && type==='Un solo frente') continue;
+   assert.deepEqual(data[dev][stage][size][type],lot,`${dev}/${stage}/${size}/${type}`);
+  }
 });
 test('LF4 neighbor lots: same prices and terms, 25 percent cash deposit for every term',()=>{
  const sizes=data['Campestre Las Flores']['Etapa 4'];
