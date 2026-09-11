@@ -1,4 +1,4 @@
-const CACHE_NAME = 'simulador-icn-v4';
+const CACHE_NAME = 'simulador-icn-v5';
 
 const urlsToCache = [
   './',
